@@ -5,7 +5,7 @@
 ## Demo
 
 <!-- TODO: 部署到 GitHub Pages 後,把下面這行換成你的實際網址 -->
-https://iceice666.github.io/moon-festival-homework/
+https://eric-123456.github.io/moon-festival/
 
 ## Development
 
@@ -15,7 +15,7 @@ https://iceice666.github.io/moon-festival-homework/
 
 1. Clone 這個 repo:
    ```
-   git clone https://github.com/iceice666/moon-festival-homework.git
+   git clone https://github.com/eric-123456/moon-festival-homework.git
    ```
 2. 打開 `index.html`:
    - 最簡單:直接用瀏覽器雙擊打開檔案。

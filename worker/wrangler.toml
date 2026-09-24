@@ -1,0 +1,8 @@
+name = "moon-festival-stats"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# 建立 KV namespace 後,把下面的 id 換成 wrangler 產生的實際 id
+kv_namespaces = [
+  { binding = "ENDINGS_KV", id = "PASTE_YOUR_KV_NAMESPACE_ID_HERE" }
+]

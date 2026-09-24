@@ -78,6 +78,15 @@
   .wish-input{ width:100%; background:#161829; color:var(--ink); border:1px solid var(--border); border-radius:10px;
     padding:14px 16px; font-family:inherit; font-size:1.02rem; margin-bottom:14px; }
   .wish-input:focus-visible{ outline:2px solid var(--moon); }
+  .ending-scene{ position:relative; height:150px; margin:-18px 0 14px; overflow:hidden; }
+  .ending-scene .spark{ position:absolute; left:50%; top:74%; width:7px; height:7px; border-radius:50%; background:var(--moon); box-shadow:0 0 14px var(--moon); animation:rise 1.5s ease-out both; }
+  .ending-scene .spark:nth-child(1){--x:-90px;--y:-65px;animation-delay:.05s}.ending-scene .spark:nth-child(2){--x:-60px;--y:-110px;animation-delay:.12s}.ending-scene .spark:nth-child(3){--x:-30px;--y:-78px;animation-delay:.2s}.ending-scene .spark:nth-child(4){--x:0px;--y:-125px;animation-delay:.28s}.ending-scene .spark:nth-child(5){--x:30px;--y:-80px;animation-delay:.36s}.ending-scene .spark:nth-child(6){--x:60px;--y:-108px;animation-delay:.44s}.ending-scene .spark:nth-child(7){--x:90px;--y:-65px;animation-delay:.52s}
+  @keyframes rise{from{transform:translate(0,0) scale(.2);opacity:0}to{transform:translate(var(--x),var(--y)) scale(1.2);opacity:1}}
+  .ending-title{display:block;font-size:1.2rem;color:var(--moon);margin:0 0 8px}.score-line,.mission-box,.record-line{padding:12px 15px;border:1px solid var(--border);border-radius:12px;background:#191b34;margin:14px 0;color:var(--ink-dim);font-size:.92rem;line-height:1.7}
+  .mission-box strong{color:var(--moon)} .ending-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+  button.secondary{background:#262848;color:var(--ink);border:1px solid var(--border);border-radius:10px;padding:11px;font:inherit;cursor:pointer} button.secondary:hover{border-color:var(--moon)}
+  .wish-result{color:var(--moon);font-style:italic}.celebrate{position:fixed;inset:0;pointer-events:none;z-index:3;overflow:hidden}.celebrate i{position:absolute;bottom:0;font-style:normal;font-size:22px;animation:floatWish 3s ease-out forwards}@keyframes floatWish{to{transform:translateY(-100vh) rotate(25deg);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.ending-scene .spark{animation:none;opacity:1;transform:translate(var(--x),var(--y))}}
   @media (max-width:640px){ .card{ padding:32px 24px; } h1{ font-size:1.5rem; } .story-text{ font-size:1.02rem; line-height:1.85; } }
   @media (prefers-reduced-motion: reduce){ .card{ animation:none; } .stars{ animation:none; } .decor svg{ animation:none; } }
 </style>
@@ -246,13 +255,14 @@ const story = {
 };
 
 const endings = {
-  gratitude:    { title: "結局:說出口的愛", desc: "你把感謝說出了口,家人愣了一下,隨即笑得比月亮還亮。" },
-  reunion_quiet:{ title: "結局:安靜的圓滿", desc: "你什麼都沒說,只是靜靜坐著,而這份安靜本身,就是最好的團圓。" },
-  legend:       { title: "結局:月門那端",   desc: "你是少數願意留下的人,這個中秋,你的故事和月亮一樣,將被靜靜記得。" },
-  homeward2:    { title: "結局:眷戀人間",   desc: "傳說再美,你還是選擇回到人間——那裡有等你回去的燈火。" },
-  homeward:     { title: "結局:歸途",       desc: "你沒有走進月光門,遠遠看見自家陽台的燈還亮著,那盞燈比任何傳說都珍貴。" },
-  hope:         { title: "結局:許願",       desc: "你把心裡的話說給了月亮聽,帶著一點微小卻真實的希望走回人間。" },
-  peace:        { title: "結局:靜好",       desc: "不求什麼,只是好好活在這一刻——這也是屬於你自己的圓滿。" }
+  gratitude:    { title: "結局:說出口的愛", rating:"稱號｜把溫暖說出口的人", desc: "你把感謝說出了口,家人愣了一下,隨即笑得比月亮還亮。" },
+  reunion_quiet:{ title: "結局:安靜的圓滿", rating:"稱號｜珍惜此刻的人", desc: "你什麼都沒說,只是靜靜坐著,而這份安靜本身,就是最好的團圓。" },
+  legend:       { title: "結局:月門那端", rating:"稱號｜月宮訪客", desc: "你是少數願意留下的人,這個中秋,你的故事和月亮一樣,將被靜靜記得。" },
+  homeward2:    { title: "結局:眷戀人間", rating:"稱號｜記得回家的人", desc: "傳說再美,你還是選擇回到人間——那裡有等你回去的燈火。" },
+  homeward:     { title: "結局:歸途", rating:"稱號｜循著燈火回家的人", desc: "你沒有走進月光門,遠遠看見自家陽台的燈還亮著,那盞燈比任何傳說都珍貴。" },
+  hope:         { title: "結局:許願", rating:"稱號｜把心願交給月亮的人", desc: "你把心裡的話說給了月亮聽,帶著一點微小卻真實的希望走回人間。" },
+  peace:        { title: "結局:靜好", rating:"稱號｜與月光同行的人", desc: "不求什麼,只是好好活在這一刻——這也是屬於你自己的圓滿。" },
+  hidden:       { title: "隱藏結局:月下團圓", rating:"稱號｜集齊月光的人", desc:"你走過每一段不同的中秋夜，月亮記住了你的所有選擇。今晚，所有故事在同一輪月光下相遇。" }
 };
 
 /* ---------- 引擎 ---------- */
@@ -260,6 +270,16 @@ const card = document.getElementById('card');
 let memories = [];
 let stepCount = 0;
 const UNLOCK_KEY = 'moon-festival-unlocked-endings';
+const RECORD_KEY = 'moon-festival-records-v2';
+const MISSIONS = [
+  { text: '收集至少 2 個回憶徽章', test: run => run.memories.length >= 2 },
+  { text: '走進月光門，看看傳說的另一端', test: run => run.visited.includes('chang_e') },
+  { text: '選擇一個溫柔的夜晚結局', test: run => ['peace','reunion_quiet','homeward','homeward2'].includes(run.ending) },
+  { text: '在故事中做出至少 5 次選擇', test: run => run.steps >= 5 },
+  { text: '找到一個平常不會走的分支', test: run => run.visited.includes('rabbit') || run.visited.includes('bbq_make_lantern') }
+];
+let mission = MISSIONS[Math.floor(Math.random() * MISSIONS.length)];
+let visited = [];
 
 function getUnlocked(){
   try { return JSON.parse(localStorage.getItem(UNLOCK_KEY) || '[]'); }
@@ -270,6 +290,28 @@ function unlockEnding(id){
     const list = getUnlocked();
     if (!list.includes(id)) { list.push(id); localStorage.setItem(UNLOCK_KEY, JSON.stringify(list)); }
   } catch(e){ /* localStorage 不可用時安靜略過 */ }
+}
+
+function getRecords(){
+  try { return JSON.parse(localStorage.getItem(RECORD_KEY) || '{"plays":0,"best":0,"wishLights":0,"endings":[]}'); }
+  catch(e){ return {plays:0,best:0,wishLights:0,endings:[]}; }
+}
+function saveEnding(id){
+  const records = getRecords();
+  records.plays += 1;
+  records.best = Math.max(records.best, memories.length);
+  if (!records.endings.includes(id)) records.endings.push(id);
+  try { localStorage.setItem(RECORD_KEY, JSON.stringify(records)); } catch(e) {}
+  return records;
+}
+function escapeHtml(value){return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function lightLantern(){
+  const records=getRecords(); records.wishLights=(records.wishLights||0)+1;
+  try{localStorage.setItem(RECORD_KEY,JSON.stringify(records));}catch(e){}
+  const layer=document.createElement('div');layer.className='celebrate';layer.setAttribute('aria-hidden','true');
+  ['🏮','✨','🌕','🎐','⭐'].forEach((symbol,i)=>{const item=document.createElement('i');item.textContent=symbol;item.style.left=(12+i*18)+'%';item.style.animationDelay=(i*.13)+'s';layer.appendChild(item)});
+  document.body.appendChild(layer);setTimeout(()=>layer.remove(),3400);
+  const button=document.getElementById('lanternBtn');if(button){button.textContent='願望已乘著燈火升起';button.disabled=true;button.setAttribute('aria-pressed','true');}
 }
 
 function incrementEndingRemote(id){
@@ -295,18 +337,36 @@ function renderEnding(id){
   const ending = endings[id];
   unlockEnding(id);
   incrementEndingRemote(id);
+  const records=saveEnding(id);
+  const missionDone=mission.test({memories,visited,ending:id,steps:stepCount});
+  const allEndings=[...new Set([...getUnlocked(),id])];
+  const regularEndingCount=Object.keys(endings).length-1;
+  const secretUnlocked=Object.keys(endings).filter(key=>key!=='hidden').every(key=>allEndings.includes(key));
   const badgeHtml = memories.length
     ? `<div class="memories">${memories.map(m => `<span>${m}</span>`).join('')}</div>`
     : '';
   card.innerHTML = `
+    <div class="ending-scene" aria-hidden="true"><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span></div>
     <span class="ending-tag">${ending.title}</span>
+    <strong class="ending-title">${ending.rating}</strong>
     <p style="color:var(--ink-dim);font-size:1.02rem;margin-bottom:6px;">${ending.desc}</p>
+    <div class="score-line">本次收集 ${memories.length} 個回憶徽章 · ${missionDone ? '任務完成！' : '再玩一次挑戰任務'}<br>${missionDone ? '🌟 ' + mission.text : '🎯 ' + mission.text}</div>
     ${badgeHtml}
+    ${id==='hidden' ? '<p class="wish-result">你點亮了所有回憶，整片夜空都為你亮起。</p>' : ''}
+    <div class="record-line">遊玩 ${records.plays} 次 · 最多收集 ${records.best} 個回憶 · 已解鎖 ${allEndings.filter(key=>key!=='hidden').length} / ${regularEndingCount} 個一般結局${allEndings.includes('hidden') ? ' · 隱藏結局已解鎖' : ''}${secretUnlocked && !allEndings.includes('hidden') ? '<br>月色深處似乎還藏著一段故事……' : ''}</div>
+    ${secretUnlocked && !allEndings.includes('hidden') ? '<button class="secondary" id="secretBtn" style="width:100%;margin:0 0 12px;">追尋月色深處的故事</button>' : ''}
+    <div class="ending-actions"><button class="secondary" id="lanternBtn" aria-pressed="false">點亮一盞願望燈</button><button class="secondary" id="memoryBtn">分享本次回憶</button></div>
     <button class="restart" id="restartBtn">重新開始這個中秋夜</button>
     <button class="stats-link" id="viewStatsBtn" style="margin-top:14px;">看看其他玩家都選了什麼結局</button>
   `;
   document.getElementById('restartBtn').addEventListener('click', () => {
-    memories = []; stepCount = 0; render('start');
+    memories = []; stepCount = 0; visited=[]; mission=MISSIONS[Math.floor(Math.random()*MISSIONS.length)]; render('start');
+  });
+  document.getElementById('lanternBtn').addEventListener('click',lightLantern);
+  const secretBtn=document.getElementById('secretBtn');if(secretBtn)secretBtn.addEventListener('click',()=>renderEnding('hidden'));
+  document.getElementById('memoryBtn').addEventListener('click',async()=>{
+    const text=`我在《月圓之夜》走到了「${ending.title.replace('結局:','')}」，收集了 ${memories.length} 個回憶徽章。`;
+    try{await navigator.clipboard.writeText(text);document.getElementById('memoryBtn').textContent='回憶已複製';}catch(e){document.getElementById('memoryBtn').textContent=text;}
   });
   document.getElementById('viewStatsBtn').addEventListener('click', () => renderStats(id));
 }
@@ -358,7 +418,7 @@ function renderWish(){
     <div class="choices"><button class="choice" id="wishSubmit">許下這個願望</button></div>
   `;
   document.getElementById('wishSubmit').addEventListener('click', () => {
-    const val = document.getElementById('wishInput').value.trim() || "一個沒有說出口、只有自己知道的願望";
+    const val = escapeHtml(document.getElementById('wishInput').value.trim() || "一個沒有說出口、只有自己知道的願望");
     stepCount += 1;
     card.innerHTML = `
       <div class="step-label">第 ${stepCount} 段 · 中秋夜</div>
@@ -370,7 +430,8 @@ function renderWish(){
 }
 
 function render(nodeKey){
-  if (nodeKey.startsWith('END:')) { renderEnding(nodeKey.slice(4)); return; }
+  if (nodeKey.startsWith('END:')) { const id=nodeKey.slice(4); if(id==='hidden' || getUnlocked().length>=Object.keys(endings).length){renderEnding('hidden');}else{renderEnding(id);} return; }
+  visited.push(nodeKey);
   const node = story[nodeKey];
   if (node.isWishInput) { renderWish(); return; }
 
@@ -402,6 +463,7 @@ function renderStartHeader(){
   return `<h1>月圓之夜</h1>
     <p class="subtitle">一個中秋夜的分支故事 · 你的選擇決定結局</p>
     <p class="unlock-line">已解鎖 ${unlocked} / ${total} 個結局</p>
+    <div class="mission-box"><strong>本輪月光任務</strong><br>${mission.text}</div>
     <button class="stats-link" id="startStatsBtn">看看其他玩家都選了什麼結局</button>`;
 }
 
