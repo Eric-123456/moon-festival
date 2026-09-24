@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>月圓之夜 · 互動故事</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#161829;
+    --bg2:#1f2140;
+    --card:#20223d;
+    --moon:#e8c872;
+    --lantern:#c8553d;
+    --ink:#f2e9d8;
+    --ink-dim:#b9b3c9;
+    --border:#3a3d63;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    min-height:100%;
+    background:var(--bg);
+    font-family:'Noto Serif TC', serif;
+    color:var(--ink);
+  }
+  body{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+    overflow-x:hidden;
+  }
+  /* 星空與月亮背景 */
+  .sky{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    background:
+      radial-gradient(circle at 78% 16%, rgba(232,200,114,0.35), rgba(232,200,114,0) 42%),
+      radial-gradient(ellipse at 50% 100%, var(--bg2), var(--bg) 70%);
+  }
+  .moon{
+    position:fixed;
+    top:8%;
+    right:10%;
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff6da, var(--moon) 60%, #c9a24f 100%);
+    box-shadow:0 0 60px 10px rgba(232,200,114,0.35);
+    z-index:0;
+  }
+  .stars{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    background-image:
+      radial-gradient(1.5px 1.5px at 20% 30%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 60% 12%, #fff, transparent),
+      radial-gradient(1px 1px at 40% 70%, #fff, transparent),
+      radial-gradient(1px 1px at 85% 60%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 10% 80%, #fff, transparent),
+      radial-gradient(1px 1px at 92% 25%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 55% 45%, #fff, transparent);
+    opacity:0.6;
+    animation:twinkle 5s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle{ from{opacity:.35;} to{opacity:.75;} }
+
+  main{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:560px;
+  }
+  .card{
+    background:linear-gradient(180deg, var(--card), #191b34);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:36px 30px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.45);
+    animation:fadein .6s ease both;
+  }
+  @keyframes fadein{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  h1{
+    margin:0 0 6px;
+    font-size:1.5rem;
+    font-weight:700;
+    letter-spacing:.04em;
+    color:var(--moon);
+  }
+  .subtitle{
+    margin:0 0 22px;
+    font-size:.85rem;
+    color:var(--ink-dim);
+  }
+  .story-text{
+    font-size:1.05rem;
+    line-height:1.9;
+    white-space:pre-line;
+    margin-bottom:28px;
+  }
+  .choices{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  button.choice{
+    text-align:left;
+    background:#262848;
+    color:var(--ink);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 16px;
+    font-family:inherit;
+    font-size:.98rem;
+    line-height:1.5;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease, transform .15s ease;
+  }
+  button.choice:hover{
+    border-color:var(--moon);
+    background:#2c2f58;
+    transform:translateX(2px);
+  }
+  button.choice:focus-visible{
+    outline:2px solid var(--moon);
+    outline-offset:2px;
+  }
+  .ending-tag{
+    display:inline-block;
+    font-size:.75rem;
+    color:var(--lantern);
+    border:1px solid var(--lantern);
+    border-radius:999px;
+    padding:3px 12px;
+    margin-bottom:16px;
+    letter-spacing:.06em;
+  }
+  button.restart{
+    margin-top:8px;
+    width:100%;
+    background:var(--lantern);
+    color:#fff6ea;
+    border:none;
+    border-radius:10px;
+    padding:13px 16px;
+    font-family:inherit;
+    font-size:.98rem;
+    cursor:pointer;
+    transition:filter .15s ease;
+  }
+  button.restart:hover{ filter:brightness(1.1); }
+  .progress{
+    display:flex;
+    gap:6px;
+    margin-bottom:18px;
+  }
+  .progress span{
+    height:4px;
+    flex:1;
+    background:var(--border);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .progress span.done{ background:var(--moon); }
+
+  @media (prefers-reduced-motion: reduce){
+    .card{ animation:none; }
+    .stars{ animation:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="sky"></div>
+  <div class="stars"></div>
+  <div class="moon"></div>
+
+  <main>
+    <div class="card" id="card"></div>
+  </main>
+
+<script>
+/* ---------- 故事資料 ---------- */
+const story = {
+  start: {
+    text: "中秋夜,天色漸暗,月亮從屋簷後緩緩升起。廚房飄來烤肉的香氣,巷口的燈籠也一盞盞亮了起來。\n\n你站在家門口,手裡拿著一盒剛買的月餅,得決定今晚怎麼過。",
+    choices: [
+      { label: "回家和家人一起烤肉", next: "bbq" },
+      { label: "一個人到河堤走走賞月", next: "walk" }
+    ]
+  },
+
+  bbq: {
+    text: "院子裡,爸媽和弟妹已經圍著烤肉架坐好,炭火劈啪作響。奶奶把月餅擺上供桌,說要先拜月娘。\n\n弟弟遞給你一把烤肉夾:「快點,肉要焦了!」",
+    choices: [
+      { label: "接過夾子,認真幫忙翻烤肉", next: "bbq_help" },
+      { label: "趁大家不注意,先偷咬一口月餅", next: "bbq_sneak" }
+    ]
+  },
+  bbq_help: {
+    text: "你把肉一片片翻得金黃,奶奶在一旁笑著說你手腳俐落。火光映在每個人臉上,弟妹搶著要吃你烤的第一片肉。\n\n月亮升到正中央時,全家人終於坐下,一起舉杯,誰也沒說什麼大道理,但這頓飯特別安心。",
+    end: "reunion"
+  },
+  bbq_sneak: {
+    text: "你偷偷咬了一口月餅,豆沙甜得剛好。奶奶卻在這時轉過頭,你以為要被念了,她卻只是笑:「偷吃的那口最甜,我以前也這樣。」\n\n她從口袋掏出一顆用油紙包著的老式月餅,說是她年輕時自己做的配方,今晚特別多做一顆給你。",
+    choices: [
+      { label: "打開油紙,和奶奶一起吃掉那顆月餅", next: "bbq_grandma" },
+      { label: "小心收好,留到更晚一個人吃", next: "bbq_keep" }
+    ]
+  },
+  bbq_grandma: {
+    text: "月餅裡包著淡淡的桂花香,是你從沒吃過的味道。奶奶一邊吃一邊講起她小時候中秋節沒有烤肉、只有一家人分一顆月餅的年代。\n\n那天晚上你沒有拍照,也沒有發限動,但那顆月餅的味道,你記了很久很久。",
+    end: "memory"
+  },
+  bbq_keep: {
+    text: "深夜,烤肉收拾完,大家都各自回房。你一個人坐在陽台,才把那顆月餅拆開。桂花香混著夜風飄過來,月亮正好掛在對面屋頂上方。\n\n你忽然覺得,有些溫柔的東西,自己一個人靜靜享受,也是一種完整。",
+    end: "solitude"
+  },
+
+  walk: {
+    text: "河堤邊沒什麼人,只有遠處誰家的收音機放著老歌。月亮的倒影在水面上晃啊晃,你放慢腳步,任由風把烤肉的煙味吹散在身後。\n\n走著走著,草叢裡竄出一隻通體雪白的兔子,牠停在你面前,盯著你看,一點也不怕人。",
+    choices: [
+      { label: "蹲下來,跟著兔子走進草叢", next: "rabbit" },
+      { label: "不理會兔子,自己找個地方坐下賞月", next: "moongaze" }
+    ]
+  },
+  rabbit: {
+    text: "兔子領著你穿過草叢,眼前竟出現一道由月光織成的、微微發亮的門。門後隱約傳來搗藥的聲音,還有一縷桂花香。\n\n兔子回頭看了你一眼,像在等你決定。",
+    choices: [
+      { label: "深吸一口氣,走進月光門", next: "chang_e" },
+      { label: "笑著搖搖頭,轉身回河堤", next: "return_path" }
+    ]
+  },
+  chang_e: {
+    text: "門後是一片灑滿月光的廣寒宮庭院,桂樹下坐著一位安靜搗藥的女子,她抬頭看你,並不驚訝,彷彿早就知道今晚會有人來。\n\n「每年這一晚,月門都會開一次,」她說,「大部分人選擇不進來——不是不能,是捨不得家裡那桌菜涼了。你呢?」",
+    end: "legend"
+  },
+  return_path: {
+    text: "你搖搖頭,兔子好像也不失望,蹦跳著鑽回草叢裡,月光門悄悄闔上,像從來沒出現過。\n\n你走回河堤,遠遠就看見自家陽台的燈還亮著,那盞燈比任何傳說都更讓你想回去。",
+    end: "homeward"
+  },
+
+  moongaze: {
+    text: "你在堤上找了塊乾淨的石階坐下,月亮又大又圓,水面被切成一片片碎銀。四周很安靜,安靜到能聽見自己的呼吸。\n\n老一輩說,中秋夜對著月亮許願特別容易實現。",
+    choices: [
+      { label: "閉上眼睛,認真許一個願望", next: "wish" },
+      { label: "什麼都不求,只是單純看著月亮發呆", next: "peace" }
+    ]
+  },
+  wish: {
+    text: "你在心裡把那個一直不敢說出口的願望說了一遍。說完的瞬間,一陣風吹過堤岸的芒草,你竟分不清是巧合,還是月亮真的聽見了。\n\n你笑了笑,起身往回走——不管有沒有實現,說出口的那一刻,你已經更靠近它一點。",
+    end: "hope"
+  },
+  peace: {
+    text: "你沒有許願,只是看著月亮從樹梢慢慢爬到天頂。手機在口袋裡震動了幾次,是家人問你去哪了,你回了一句「在賞月」,然後把手機收起來。\n\n有些夜晚,不需要許願,也不需要理由,只是好好在場,就已經很足夠。",
+    end: "peace"
+  }
+};
+
+/* ---------- 結局資料 ---------- */
+const endings = {
+  reunion:   { title: "結局:團圓",   desc: "你選擇留在最平凡的地方——家人身邊,而這往往是最難得的圓滿。" },
+  memory:    { title: "結局:傳承的滋味", desc: "你接住了奶奶悄悄遞來的回憶,一顆月餅,連起了兩個世代。" },
+  solitude:  { title: "結局:獨享的溫柔", desc: "你學會了不必和誰分享,也能把一份美好留給自己。" },
+  legend:    { title: "結局:月門那端", desc: "你是少數願意走進傳說的人,這個中秋,你的故事和月亮一樣古老。" },
+  homeward:  { title: "結局:歸途", desc: "傳說很美,但你更珍惜那盞為你留著的燈。" },
+  hope:      { title: "結局:許願",   desc: "你把心裡的話說給月亮聽,帶著一點希望走回人間的路。" },
+  peace:     { title: "結局:靜好",   desc: "不求什麼,只是好好活在這一刻——這也是一種圓滿。" }
+};
+
+/* ---------- 引擎 ---------- */
+const card = document.getElementById('card');
+let step = 0;
+
+function render(nodeKey){
+  const node = story[nodeKey];
+  card.innerHTML = '';
+
+  if (node.end){
+    const ending = endings[node.end];
+    card.innerHTML = `
+      <span class="ending-tag">${ending.title}</span>
+      <div class="story-text">${node.text}</div>
+      <p style="color:var(--ink-dim);font-size:.92rem;margin-bottom:22px;">${ending.desc}</p>
+      <button class="restart" id="restartBtn">重新開始這個中秋夜</button>
+    `;
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      step = 0;
+      render('start');
+    });
+    return;
+  }
+
+  step += 1;
+  const totalSteps = 3;
+  const dots = Array.from({length: totalSteps}, (_, i) =>
+    `<span class="${i < step ? 'done' : ''}"></span>`
+  ).join('');
+
+  card.innerHTML = `
+    <div class="progress">${dots}</div>
+    <h1>月圓之夜</h1>
+    <p class="subtitle">一個中秋夜的分支故事 · 你的選擇決定結局</p>
+    <div class="story-text">${node.text}</div>
+    <div class="choices">
+      ${node.choices.map(c => `<button class="choice" data-next="${c.next}">${c.label}</button>`).join('')}
+    </div>
+  `;
+
+  card.querySelectorAll('.choice').forEach(btn => {
+    btn.addEventListener('click', () => render(btn.dataset.next));
+  });
+}
+
+render('start');
+</script>
+</body>
+</html>
