@@ -32,6 +32,19 @@
       radial-gradient(1px 1px at 92% 25%, #fff, transparent),
       radial-gradient(1.5px 1.5px at 55% 45%, #fff, transparent);
     opacity:0.6; animation:twinkle 5s ease-in-out infinite alternate; }
+  .ambient-effects{position:fixed;inset:0;z-index:.5;overflow:hidden;pointer-events:none;}
+  .floating-lantern{position:absolute;bottom:-100px;font-size:34px;opacity:0;filter:drop-shadow(0 0 12px rgba(232,200,114,.55));animation:lantern-rise 24s linear infinite;}
+  .floating-lantern:nth-child(1){left:5%;animation-delay:-3s;animation-duration:27s;font-size:30px}
+  .floating-lantern:nth-child(2){right:6%;animation-delay:-15s;animation-duration:30s;font-size:38px}
+  .floating-lantern:nth-child(3){left:15%;animation-delay:-20s;animation-duration:34s;font-size:24px}
+  .floating-lantern:nth-child(4){right:16%;animation-delay:-8s;animation-duration:32s;font-size:27px}
+  @keyframes lantern-rise{0%{transform:translate3d(0,0,0) rotate(-5deg);opacity:0}8%{opacity:.58}45%{transform:translate3d(18px,-55vh,0) rotate(5deg)}90%{opacity:.5}100%{transform:translate3d(-12px,-120vh,0) rotate(-4deg);opacity:0}}
+  .firefly{position:absolute;width:4px;height:4px;border-radius:50%;background:#ffeaa3;box-shadow:0 0 12px 3px rgba(255,226,133,.72);opacity:0;animation:firefly-drift 7s ease-in-out infinite}
+  .firefly:nth-of-type(5){left:11%;top:68%;animation-delay:-2s}.firefly:nth-of-type(6){right:13%;top:36%;animation-delay:-5s}.firefly:nth-of-type(7){left:20%;top:25%;animation-delay:-3s}.firefly:nth-of-type(8){right:21%;top:76%;animation-delay:-1s}
+  @keyframes firefly-drift{0%,100%{transform:translate(0,10px);opacity:0}40%,60%{transform:translate(14px,-22px);opacity:.85}}
+  .osmanthus{position:absolute;bottom:-24px;color:#e8c872;font-size:15px;opacity:0;animation:petal-drift 19s linear infinite}
+  .osmanthus:nth-last-child(3){left:28%;animation-delay:-9s}.osmanthus:nth-last-child(2){left:70%;animation-delay:-15s}.osmanthus:nth-last-child(1){left:46%;animation-delay:-4s}
+  @keyframes petal-drift{0%{transform:translate3d(0,0,0) rotate(0);opacity:0}12%{opacity:.48}100%{transform:translate3d(42px,-110vh,0) rotate(180deg);opacity:0}}
   @keyframes twinkle{ from{opacity:.35;} to{opacity:.75;} }
   .decor{ position:fixed; top:0; bottom:0; width:180px; z-index:0; pointer-events:none; }
   .decor.left{ left:0; } .decor.right{ right:0; }
@@ -78,12 +91,26 @@
   .wish-input{ width:100%; background:#161829; color:var(--ink); border:1px solid var(--border); border-radius:10px;
     padding:14px 16px; font-family:inherit; font-size:1.02rem; margin-bottom:14px; }
   .wish-input:focus-visible{ outline:2px solid var(--moon); }
+  .ending-scene{ position:relative; height:150px; margin:-18px 0 14px; overflow:hidden; }
+  .ending-scene .spark{ position:absolute; left:50%; top:74%; width:7px; height:7px; border-radius:50%; background:var(--moon); box-shadow:0 0 14px var(--moon); animation:rise 1.5s ease-out both; }
+  .ending-scene .spark:nth-child(1){--x:-90px;--y:-65px;animation-delay:.05s}.ending-scene .spark:nth-child(2){--x:-60px;--y:-110px;animation-delay:.12s}.ending-scene .spark:nth-child(3){--x:-30px;--y:-78px;animation-delay:.2s}.ending-scene .spark:nth-child(4){--x:0px;--y:-125px;animation-delay:.28s}.ending-scene .spark:nth-child(5){--x:30px;--y:-80px;animation-delay:.36s}.ending-scene .spark:nth-child(6){--x:60px;--y:-108px;animation-delay:.44s}.ending-scene .spark:nth-child(7){--x:90px;--y:-65px;animation-delay:.52s}
+  @keyframes rise{from{transform:translate(0,0) scale(.2);opacity:0}to{transform:translate(var(--x),var(--y)) scale(1.2);opacity:1}}
+  .ending-title{display:block;font-size:1.2rem;color:var(--moon);margin:0 0 8px}.score-line,.mission-box,.record-line{padding:12px 15px;border:1px solid var(--border);border-radius:12px;background:#191b34;margin:14px 0;color:var(--ink-dim);font-size:.92rem;line-height:1.7}
+  .mission-box strong{color:var(--moon)} .ending-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+  button.secondary{background:#262848;color:var(--ink);border:1px solid var(--border);border-radius:10px;padding:11px;font:inherit;cursor:pointer} button.secondary:hover{border-color:var(--moon)}
+  .wish-result{color:var(--moon);font-style:italic}.celebrate{position:fixed;inset:0;pointer-events:none;z-index:3;overflow:hidden}.celebrate i{position:absolute;bottom:0;font-style:normal;font-size:22px;animation:floatWish 3s ease-out forwards}@keyframes floatWish{to{transform:translateY(-100vh) rotate(25deg);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.ending-scene .spark{animation:none;opacity:1;transform:translate(var(--x),var(--y))}}
   @media (max-width:640px){ .card{ padding:32px 24px; } h1{ font-size:1.5rem; } .story-text{ font-size:1.02rem; line-height:1.85; } }
-  @media (prefers-reduced-motion: reduce){ .card{ animation:none; } .stars{ animation:none; } .decor svg{ animation:none; } }
+  @media (prefers-reduced-motion: reduce){ .card{ animation:none; } .stars{ animation:none; } .decor svg{ animation:none; } .floating-lantern,.firefly,.osmanthus{animation:none;display:none} }
 </style>
 </head>
 <body>
   <div class="sky"></div><div class="stars"></div><div class="moon"></div>
+  <div class="ambient-effects" aria-hidden="true">
+    <span class="floating-lantern">🏮</span><span class="floating-lantern">🏮</span><span class="floating-lantern">🏮</span><span class="floating-lantern">🏮</span>
+    <span class="firefly"></span><span class="firefly"></span><span class="firefly"></span><span class="firefly"></span>
+    <span class="osmanthus">✿</span><span class="osmanthus">✿</span><span class="osmanthus">✿</span>
+  </div>
 
   <div class="decor left">
     <svg viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="var(--lantern)" stroke-width="2">
@@ -246,13 +273,14 @@ const story = {
 };
 
 const endings = {
-  gratitude:    { title: "結局:說出口的愛", desc: "你把感謝說出了口,家人愣了一下,隨即笑得比月亮還亮。" },
-  reunion_quiet:{ title: "結局:安靜的圓滿", desc: "你什麼都沒說,只是靜靜坐著,而這份安靜本身,就是最好的團圓。" },
-  legend:       { title: "結局:月門那端",   desc: "你是少數願意留下的人,這個中秋,你的故事和月亮一樣,將被靜靜記得。" },
-  homeward2:    { title: "結局:眷戀人間",   desc: "傳說再美,你還是選擇回到人間——那裡有等你回去的燈火。" },
-  homeward:     { title: "結局:歸途",       desc: "你沒有走進月光門,遠遠看見自家陽台的燈還亮著,那盞燈比任何傳說都珍貴。" },
-  hope:         { title: "結局:許願",       desc: "你把心裡的話說給了月亮聽,帶著一點微小卻真實的希望走回人間。" },
-  peace:        { title: "結局:靜好",       desc: "不求什麼,只是好好活在這一刻——這也是屬於你自己的圓滿。" }
+  gratitude:    { title: "結局:說出口的愛", rating:"稱號｜把溫暖說出口的人", desc: "你把感謝說出了口,家人愣了一下,隨即笑得比月亮還亮。" },
+  reunion_quiet:{ title: "結局:安靜的圓滿", rating:"稱號｜珍惜此刻的人", desc: "你什麼都沒說,只是靜靜坐著,而這份安靜本身,就是最好的團圓。" },
+  legend:       { title: "結局:月門那端", rating:"稱號｜月宮訪客", desc: "你是少數願意留下的人,這個中秋,你的故事和月亮一樣,將被靜靜記得。" },
+  homeward2:    { title: "結局:眷戀人間", rating:"稱號｜記得回家的人", desc: "傳說再美,你還是選擇回到人間——那裡有等你回去的燈火。" },
+  homeward:     { title: "結局:歸途", rating:"稱號｜循著燈火回家的人", desc: "你沒有走進月光門,遠遠看見自家陽台的燈還亮著,那盞燈比任何傳說都珍貴。" },
+  hope:         { title: "結局:許願", rating:"稱號｜把心願交給月亮的人", desc: "你把心裡的話說給了月亮聽,帶著一點微小卻真實的希望走回人間。" },
+  peace:        { title: "結局:靜好", rating:"稱號｜與月光同行的人", desc: "不求什麼,只是好好活在這一刻——這也是屬於你自己的圓滿。" },
+  hidden:       { title: "隱藏結局:月下團圓", rating:"稱號｜集齊月光的人", desc:"你走過每一段不同的中秋夜，月亮記住了你的所有選擇。今晚，所有故事在同一輪月光下相遇。" }
 };
 
 /* ---------- 引擎 ---------- */
@@ -260,6 +288,19 @@ const card = document.getElementById('card');
 let memories = [];
 let stepCount = 0;
 const UNLOCK_KEY = 'moon-festival-unlocked-endings';
+const RECORD_KEY = 'moon-festival-records-v2';
+const MISSIONS = [
+  { text: '收集至少 2 個回憶徽章', test: run => run.memories.length >= 2 },
+  { text: '走進月光門，看看傳說的另一端', test: run => run.visited.includes('chang_e') },
+  { text: '選擇一個溫柔的夜晚結局', test: run => ['peace','reunion_quiet','homeward','homeward2'].includes(run.ending) },
+  { text: '在故事中做出至少 5 次選擇', test: run => run.steps >= 5 },
+  { text: '找到一個平常不會走的分支', test: run => run.visited.includes('rabbit') || run.visited.includes('bbq_make_lantern') }
+];
+let mission = MISSIONS[Math.floor(Math.random() * MISSIONS.length)];
+let visited = [];
+let playerName = '';
+let storyLog = [];
+let currentRunSaved = false;
 
 function getUnlocked(){
   try { return JSON.parse(localStorage.getItem(UNLOCK_KEY) || '[]'); }
@@ -270,6 +311,28 @@ function unlockEnding(id){
     const list = getUnlocked();
     if (!list.includes(id)) { list.push(id); localStorage.setItem(UNLOCK_KEY, JSON.stringify(list)); }
   } catch(e){ /* localStorage 不可用時安靜略過 */ }
+}
+
+function getRecords(){
+  try { return JSON.parse(localStorage.getItem(RECORD_KEY) || '{"plays":0,"best":0,"wishLights":0,"endings":[]}'); }
+  catch(e){ return {plays:0,best:0,wishLights:0,endings:[]}; }
+}
+function saveEnding(id){
+  const records = getRecords();
+  records.plays += 1;
+  records.best = Math.max(records.best, memories.length);
+  if (!records.endings.includes(id)) records.endings.push(id);
+  try { localStorage.setItem(RECORD_KEY, JSON.stringify(records)); } catch(e) {}
+  return records;
+}
+function escapeHtml(value){return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function lightLantern(){
+  const records=getRecords(); records.wishLights=(records.wishLights||0)+1;
+  try{localStorage.setItem(RECORD_KEY,JSON.stringify(records));}catch(e){}
+  const layer=document.createElement('div');layer.className='celebrate';layer.setAttribute('aria-hidden','true');
+  ['🏮','✨','🌕','🎐','⭐'].forEach((symbol,i)=>{const item=document.createElement('i');item.textContent=symbol;item.style.left=(12+i*18)+'%';item.style.animationDelay=(i*.13)+'s';layer.appendChild(item)});
+  document.body.appendChild(layer);setTimeout(()=>layer.remove(),3400);
+  const button=document.getElementById('lanternBtn');if(button){button.textContent='願望已乘著燈火升起';button.disabled=true;button.setAttribute('aria-pressed','true');}
 }
 
 function incrementEndingRemote(id){
@@ -291,22 +354,60 @@ async function fetchStats(){
   } catch (e) { return null; }
 }
 
+async function saveStoryRecord(record){
+  try { const list=JSON.parse(localStorage.getItem('moon-festival-story-log')||'[]'); list.unshift(record); localStorage.setItem('moon-festival-story-log',JSON.stringify(list.slice(0,50))); } catch(e){}
+  if(!CONFIG.WORKER_URL||CONFIG.WORKER_URL.includes('YOUR-SUBDOMAIN')) return;
+  try { await fetch(CONFIG.WORKER_URL+'/stories',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(record)}); } catch(e){}
+}
+async function fetchStoryRecords(){
+  if(!CONFIG.WORKER_URL||CONFIG.WORKER_URL.includes('YOUR-SUBDOMAIN')) return null;
+  try { const res=await fetch(CONFIG.WORKER_URL+'/stories'); if(!res.ok)return null; return await res.json(); } catch(e){return null;}
+}
+function renderPlayerEntry(){
+  card.innerHTML=`<h1>月圓之夜</h1><p class="subtitle">先留下你的名稱，再開始今晚的故事。</p><label for="playerNameInput">玩家名稱</label><input class="wish-input" id="playerNameInput" maxlength="24" autocomplete="nickname" placeholder="輸入你想使用的名稱"><div class="choices"><button class="choice" id="enterStoryBtn">進入故事</button></div><button class="stats-link" id="entryStoriesBtn" style="margin-top:18px;">查看玩家結局與故事紀錄</button>`;
+  const input=document.getElementById('playerNameInput');
+  document.getElementById('enterStoryBtn').addEventListener('click',()=>{playerName=input.value.trim().slice(0,24)||'月光旅人';memories=[];stepCount=0;visited=[];storyLog=[];currentRunSaved=false;window.__moonStorySaved=false;mission=MISSIONS[Math.floor(Math.random()*MISSIONS.length)];render('start');});
+  input.addEventListener('keydown',event=>{if(event.key==='Enter')document.getElementById('enterStoryBtn').click();});
+  document.getElementById('entryStoriesBtn').addEventListener('click',()=>renderStats(null));
+}
+
 function renderEnding(id){
   const ending = endings[id];
-  unlockEnding(id);
-  incrementEndingRemote(id);
+  if(id==='hidden'&&!getUnlocked().includes('hidden'))unlockEnding('hidden');
+  const firstRender=!currentRunSaved;
+  if(firstRender){unlockEnding(id);incrementEndingRemote(id);saveEnding(id);currentRunSaved=true;}
+  const records=getRecords();
+  if(firstRender)saveStoryRecord({player:playerName||'月光旅人',ending:id,endingTitle:ending.title,description:ending.desc,path:storyLog.slice(),memories:memories.slice(),date:new Date().toISOString()});
+  const missionDone=mission.test({memories,visited,ending:id,steps:stepCount});
+  const allEndings=[...new Set([...getUnlocked(),id])];
+  const regularEndingCount=Object.keys(endings).length-1;
+  const secretUnlocked=Object.keys(endings).filter(key=>key!=='hidden').every(key=>allEndings.includes(key));
   const badgeHtml = memories.length
     ? `<div class="memories">${memories.map(m => `<span>${m}</span>`).join('')}</div>`
     : '';
   card.innerHTML = `
+    <div class="ending-scene" aria-hidden="true"><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span></div>
     <span class="ending-tag">${ending.title}</span>
+    <strong class="ending-title">${ending.rating}</strong>
     <p style="color:var(--ink-dim);font-size:1.02rem;margin-bottom:6px;">${ending.desc}</p>
+    <div class="record-line">玩家：${escapeHtml(playerName||'月光旅人')}<br>本輪故事：${storyLog.map(escapeHtml).join(' → ')||'月色中的一段旅程'} → ${escapeHtml(ending.title.replace('結局:','').replace('隱藏結局:',''))}</div>
+    <div class="score-line">本次收集 ${memories.length} 個回憶徽章 · ${missionDone ? '任務完成！' : '再玩一次挑戰任務'}<br>${missionDone ? '🌟 ' + mission.text : '🎯 ' + mission.text}</div>
     ${badgeHtml}
+    ${id==='hidden' ? '<p class="wish-result">你點亮了所有回憶，整片夜空都為你亮起。</p>' : ''}
+    <div class="record-line">遊玩 ${records.plays} 次 · 最多收集 ${records.best} 個回憶 · 已解鎖 ${allEndings.filter(key=>key!=='hidden').length} / ${regularEndingCount} 個一般結局${allEndings.includes('hidden') ? ' · 隱藏結局已解鎖' : ''}${secretUnlocked && !allEndings.includes('hidden') ? '<br>月色深處似乎還藏著一段故事……' : ''}</div>
+    ${secretUnlocked && !allEndings.includes('hidden') ? '<button class="secondary" id="secretBtn" style="width:100%;margin:0 0 12px;">追尋月色深處的故事</button>' : ''}
+    <div class="ending-actions"><button class="secondary" id="lanternBtn" aria-pressed="false">點亮一盞願望燈</button><button class="secondary" id="memoryBtn">分享本次回憶</button></div>
     <button class="restart" id="restartBtn">重新開始這個中秋夜</button>
-    <button class="stats-link" id="viewStatsBtn" style="margin-top:14px;">看看其他玩家都選了什麼結局</button>
+    <button class="stats-link" id="viewStatsBtn" style="margin-top:14px;">看看其他玩家的結局與故事</button>
   `;
   document.getElementById('restartBtn').addEventListener('click', () => {
-    memories = []; stepCount = 0; render('start');
+    memories = []; stepCount = 0; visited=[]; storyLog=[];currentRunSaved=false;mission=MISSIONS[Math.floor(Math.random()*MISSIONS.length)]; render('start');
+  });
+  document.getElementById('lanternBtn').addEventListener('click',lightLantern);
+  const secretBtn=document.getElementById('secretBtn');if(secretBtn)secretBtn.addEventListener('click',()=>renderEnding('hidden'));
+  document.getElementById('memoryBtn').addEventListener('click',async()=>{
+    const text=`我在《月圓之夜》走到了「${ending.title.replace('結局:','')}」，收集了 ${memories.length} 個回憶徽章。`;
+    try{await navigator.clipboard.writeText(text);document.getElementById('memoryBtn').textContent='回憶已複製';}catch(e){document.getElementById('memoryBtn').textContent=text;}
   });
   document.getElementById('viewStatsBtn').addEventListener('click', () => renderStats(id));
 }
@@ -343,8 +444,14 @@ async function renderStats(returnToEnding){
     `;
   }
 
+  let storyRecords=await fetchStoryRecords();
+  if(!storyRecords){try{storyRecords=JSON.parse(localStorage.getItem('moon-festival-story-log')||'[]');}catch(e){storyRecords=[];}}
+  const storySection=document.createElement('section');
+  storySection.innerHTML=`<h2 style="font-size:1.15rem;color:var(--moon);margin-top:26px;">玩家故事紀錄</h2>${storyRecords.slice(0,20).map(item=>`<div class="record-line"><strong>${escapeHtml(item.player||'月光旅人')}</strong> · ${escapeHtml(item.endingTitle||item.ending||'中秋夜')}<br><small>${escapeHtml(item.date?new Date(item.date).toLocaleString():'')}</small><br>${(item.path||[]).map(escapeHtml).join(' → ')||escapeHtml(item.description||'')}</div>`).join('')||'<p class="stats-note">還沒有玩家留下故事紀錄。</p>'}`;
+  card.insertBefore(storySection,document.getElementById('backBtn'));
+
   document.getElementById('backBtn').addEventListener('click', () => {
-    if (returnToEnding) { renderEnding(returnToEnding); } else { render('start'); }
+    if (returnToEnding) { renderEnding(returnToEnding); } else if(playerName) { render('start'); } else { renderPlayerEntry(); }
   });
 }
 
@@ -358,7 +465,8 @@ function renderWish(){
     <div class="choices"><button class="choice" id="wishSubmit">許下這個願望</button></div>
   `;
   document.getElementById('wishSubmit').addEventListener('click', () => {
-    const val = document.getElementById('wishInput').value.trim() || "一個沒有說出口、只有自己知道的願望";
+    const val = escapeHtml(document.getElementById('wishInput').value.trim() || "一個沒有說出口、只有自己知道的願望");
+    storyLog.push('許下願望：'+val);
     stepCount += 1;
     card.innerHTML = `
       <div class="step-label">第 ${stepCount} 段 · 中秋夜</div>
@@ -370,7 +478,8 @@ function renderWish(){
 }
 
 function render(nodeKey){
-  if (nodeKey.startsWith('END:')) { renderEnding(nodeKey.slice(4)); return; }
+  if (nodeKey.startsWith('END:')) { const id=nodeKey.slice(4); if(id==='hidden' || getUnlocked().length>=Object.keys(endings).length){renderEnding('hidden');}else{renderEnding(id);} return; }
+  visited.push(nodeKey);
   const node = story[nodeKey];
   if (node.isWishInput) { renderWish(); return; }
 
@@ -386,6 +495,7 @@ function render(nodeKey){
   card.querySelectorAll('.choice').forEach(btn => {
     btn.addEventListener('click', () => {
       if (btn.dataset.badge) memories.push(btn.dataset.badge);
+      storyLog.push(btn.textContent.trim());
       render(btn.dataset.next);
     });
   });
@@ -402,10 +512,11 @@ function renderStartHeader(){
   return `<h1>月圓之夜</h1>
     <p class="subtitle">一個中秋夜的分支故事 · 你的選擇決定結局</p>
     <p class="unlock-line">已解鎖 ${unlocked} / ${total} 個結局</p>
+    <div class="mission-box"><strong>本輪月光任務</strong><br>${mission.text}</div>
     <button class="stats-link" id="startStatsBtn">看看其他玩家都選了什麼結局</button>`;
 }
 
-render('start');
+renderPlayerEntry();
 </script>
 </body>
 </html>
