@@ -15,7 +15,7 @@ https://eric-123456.github.io/moon-festival/
 
 1. Clone 這個 repo:
    ```
-   git clone https://github.com/eric-123456/moon-festival-homework.git
+   git clone https://github.com/Eric-123456/moon-festival.git
    ```
 2. 打開 `index.html`:
    - 最簡單:直接用瀏覽器雙擊打開檔案。
