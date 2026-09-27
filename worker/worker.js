@@ -88,7 +88,7 @@ export default {
       const ending = String(body.ending || "");
       if (!ENDINGS.includes(ending)) return new Response(JSON.stringify({ error: "unknown ending id" }), { status: 400, headers: { ...corsHeaders(), "Content-Type": "application/json" } });
       const id = `${Date.now()}-${crypto.randomUUID()}`;
-      const record = { id, player, ending, endingTitle: String(body.endingTitle || "").slice(0, 80), description: String(body.description || "").slice(0, 500), path: Array.isArray(body.path) ? body.path.slice(0, 30).map(item => String(item).slice(0, 200)) : [], date: new Date().toISOString() };
+      const record = { id, player, ending, endingTitle: String(body.endingTitle || "").slice(0, 80), description: String(body.description || "").slice(0, 500), path: Array.isArray(body.path) ? body.path.filter(item => typeof item === "string").slice(0, 30).map(item => item.slice(0, 200)) : [], date: new Date().toISOString() };
       await env.ENDINGS_KV.put(`story:${id}`, JSON.stringify(record));
       return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders(), "Content-Type": "application/json" } });
     }

@@ -86,6 +86,20 @@
   .stat-row .stat-bar-bg{ background:var(--border); border-radius:6px; height:10px; overflow:hidden; }
   .stat-row .stat-bar-fill{ background:var(--moon); height:100%; border-radius:6px; transition:width .5s ease; }
   .stats-note{ color:var(--ink-dim); font-size:.85rem; margin-top:22px; }
+  .nav-links{ display:flex; flex-wrap:wrap; gap:6px 18px; margin-bottom:26px; } .nav-links .stats-link{ margin-bottom:0; }
+  details.fold{ border:1px solid var(--border); border-radius:12px; background:#191b34; margin:10px 0; }
+  details.fold > summary{ cursor:pointer; padding:12px 15px; color:var(--ink-dim); font-size:.92rem; list-style:none; }
+  details.fold > summary::-webkit-details-marker{ display:none; }
+  details.fold > summary::before{ content:'📁 '; } details.fold[open] > summary::before{ content:'📂 '; }
+  details.fold > summary:hover{ color:var(--moon); } details.fold > summary:focus-visible{ outline:2px solid var(--moon); border-radius:12px; }
+  details.fold .fold-body{ padding:0 15px 14px; color:var(--ink-dim); font-size:.92rem; line-height:1.75; }
+  details.recap{ margin:0 0 22px; }
+  .recap-item{ padding:10px 0; border-top:1px dashed var(--border); white-space:pre-line; }
+  .recap-item .picked{ display:block; margin-top:6px; color:var(--moon); }
+  .collection{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin:18px 0 22px; }
+  .ending-card{ border:1px solid var(--border); border-radius:12px; padding:13px 15px; background:#191b34; font-size:.9rem; line-height:1.6; }
+  .ending-card strong{ display:block; color:var(--moon); } .ending-card small{ color:var(--ink-dim); }
+  .ending-card.locked{ opacity:.55; border-style:dashed; } .ending-card.locked strong{ color:var(--ink-dim); }
   .wish-input{ width:100%; background:#161829; color:var(--ink); border:1px solid var(--border); border-radius:10px;
     padding:14px 16px; font-family:inherit; font-size:1.02rem; margin-bottom:14px; }
   .wish-input:focus-visible{ outline:2px solid var(--moon); }
@@ -440,11 +454,16 @@ const MISSIONS = [
   { text: '在停電的夜裡找到光', test: run => run.visited.includes('bbq_blackout') }
 ];
 const DOOR_ENDINGS = ['legend', 'homeward', 'homeward2'];
-let mission, stepCount, visited, storyLog, flags, wishText, currentRunSaved;
+const ENDING_ROUTES = {
+  gratitude:'烤肉線', reunion_quiet:'烤肉線', candlelight:'烤肉線', rooftop_promise:'烤肉線', extra_bowl:'烤肉線',
+  legend:'賞月線', homeward2:'賞月線', homeward:'賞月線', hope:'賞月線', peace:'賞月線', late_reunion:'賞月線',
+  hidden:'集滿所有結局後開啟'
+};
+let mission, stepCount, visited, storyLog, transcript, flags, wishText, currentRunSaved;
 let playerName = '';
 
 function resetRun(){
-  stepCount = 0; visited = []; storyLog = []; flags = new Set(); wishText = ''; currentRunSaved = false;
+  stepCount = 0; visited = []; storyLog = []; transcript = []; flags = new Set(); wishText = ''; currentRunSaved = false;
   mission = MISSIONS[Math.floor(Math.random() * MISSIONS.length)];
 }
 resetRun();
@@ -461,6 +480,26 @@ function ctx(){
   };
 }
 function resolve(value){ return typeof value === 'function' ? value(ctx()) : value; }
+
+// 前情回顧:每一段讀過的劇情和當時的選擇,收在可展開的資料夾裡
+function remember(text, choice){ transcript.push({ text, choice }); storyLog.push(choice); }
+function recapHtml(){
+  if (!transcript.length) return '';
+  return `<details class="fold recap"><summary>前情回顧 · 已走過 ${transcript.length} 段</summary><div class="fold-body">${
+    transcript.map(item => `<div class="recap-item">${item.text}<span class="picked">➤ 你選擇:${escapeHtml(item.choice)}</span></div>`).join('')
+  }</div></details>`;
+}
+
+// 故事紀錄的路徑只保留文字;舊版留下的物件或 "[object Object]" 一律丟掉
+function cleanPath(path){
+  return (Array.isArray(path) ? path : [])
+    .map(step => typeof step === 'string' ? step : (step && typeof step === 'object' ? (step.choice || step.label || '') : ''))
+    .filter(step => typeof step === 'string' && step && step !== '[object Object]');
+}
+try {
+  const log = JSON.parse(localStorage.getItem('moon-festival-story-log') || '[]');
+  localStorage.setItem('moon-festival-story-log', JSON.stringify(log.map(item => ({ ...item, path: cleanPath(item.path) }))));
+} catch(e){ /* localStorage 不可用時安靜略過 */ }
 
 function getUnlocked(){
   try { return JSON.parse(localStorage.getItem(UNLOCK_KEY) || '[]'); }
@@ -523,11 +562,36 @@ async function fetchStoryRecords(){
   try { const res=await fetch(CONFIG.WORKER_URL+'/stories'); if(!res.ok)return null; return await res.json(); } catch(e){return null;}
 }
 function renderPlayerEntry(){
-  card.innerHTML=`<h1>月圓之夜</h1><p class="subtitle">先留下你的名稱，再開始今晚的故事。</p><label for="playerNameInput">玩家名稱</label><input class="wish-input" id="playerNameInput" maxlength="24" autocomplete="nickname" placeholder="輸入你想使用的名稱"><div class="choices"><button class="choice" id="enterStoryBtn">進入故事</button></div><button class="stats-link" id="entryStoriesBtn" style="margin-top:18px;">查看玩家結局與故事紀錄</button>`;
+  card.innerHTML=`<h1>月圓之夜</h1><p class="subtitle">先留下你的名稱，再開始今晚的故事。</p><label for="playerNameInput">玩家名稱</label><input class="wish-input" id="playerNameInput" maxlength="24" autocomplete="nickname" placeholder="輸入你想使用的名稱"><div class="choices"><button class="choice" id="enterStoryBtn">進入故事</button></div><div class="nav-links" style="margin-top:18px;"><button class="stats-link" id="entryStoriesBtn">查看其他玩家</button><button class="stats-link" id="entryCollectionBtn">我的結局收藏</button></div>`;
   const input=document.getElementById('playerNameInput');
   document.getElementById('enterStoryBtn').addEventListener('click',()=>{playerName=input.value.trim().slice(0,24)||'月光旅人';resetRun();render('start');});
   input.addEventListener('keydown',event=>{if(event.key==='Enter')document.getElementById('enterStoryBtn').click();});
   document.getElementById('entryStoriesBtn').addEventListener('click',()=>renderStats(null));
+  document.getElementById('entryCollectionBtn').addEventListener('click',()=>renderCollection(null));
+}
+
+// 回到開頭畫面(從統計或收藏頁返回時用,不重抽任務)
+function backToStart(){
+  if (!playerName) { renderPlayerEntry(); return; }
+  stepCount = 0; visited = []; render('start');
+}
+
+function renderCollection(returnToEnding){
+  const unlocked = getUnlocked();
+  const records = getRecords();
+  const ids = Object.keys(endings);
+  const regular = ids.filter(id => id !== 'hidden');
+  card.innerHTML = `
+    <h1 style="font-size:1.3rem;margin-bottom:4px;">我的結局收藏</h1>
+    <p class="unlock-line" style="margin-bottom:6px;">已解鎖 ${regular.filter(id => unlocked.includes(id)).length} / ${regular.length} 個一般結局${unlocked.includes('hidden') ? ' · 隱藏結局已解鎖' : ''}</p>
+    <p class="subtitle">共遊玩 ${records.plays} 次</p>
+    <div class="collection">${ids.map(id => unlocked.includes(id)
+      ? `<div class="ending-card"><strong>${endings[id].title.replace('隱藏結局:','').replace('結局:','')}</strong>${endings[id].rating.replace('稱號｜','')}<br><small>${ENDING_ROUTES[id]}</small></div>`
+      : `<div class="ending-card locked"><strong>？？？</strong>尚未解鎖<br><small>${ENDING_ROUTES[id]}</small></div>`
+    ).join('')}</div>
+    <button class="restart" id="backBtn">返回</button>
+  `;
+  document.getElementById('backBtn').addEventListener('click', () => returnToEnding ? renderEnding(returnToEnding) : backToStart());
 }
 
 function renderEnding(id){
@@ -546,14 +610,15 @@ function renderEnding(id){
     <span class="ending-tag">${ending.title}</span>
     <strong class="ending-title">${ending.rating}</strong>
     <p style="color:var(--ink-dim);font-size:1.02rem;margin-bottom:6px;">${desc}</p>
-    <div class="record-line">玩家：${escapeHtml(playerName||'月光旅人')}<br>本輪故事：${storyLog.map(escapeHtml).join(' → ')||'月色中的一段旅程'} → ${escapeHtml(ending.title.replace('結局:','').replace('隱藏結局:',''))}</div>
+    <div class="record-line">玩家：${escapeHtml(playerName||'月光旅人')}</div>
+    ${recapHtml()}
     <div class="score-line">${missionDone ? '任務完成！' : '再玩一次挑戰任務'}<br>${missionDone ? '🌟 ' + mission.text : '🎯 ' + mission.text}</div>
     ${id==='hidden' ? '<p class="wish-result">你走過了每一段中秋夜，整片夜空都為你亮起。</p>' : ''}
     <div class="record-line">遊玩 ${records.plays} 次 · 已解鎖 ${allEndings.filter(key=>key!=='hidden').length} / ${regularEndingCount} 個一般結局${allEndings.includes('hidden') ? ' · 隱藏結局已解鎖' : ''}${secretUnlocked && !allEndings.includes('hidden') ? '<br>月色深處似乎還藏著一段故事……' : ''}</div>
     ${secretUnlocked && !allEndings.includes('hidden') ? '<button class="secondary" id="secretBtn" style="width:100%;margin:0 0 12px;">追尋月色深處的故事</button>' : ''}
     <div class="ending-actions"><button class="secondary" id="lanternBtn" aria-pressed="false">點亮一盞願望燈</button><button class="secondary" id="shareBtn">分享本次結局</button></div>
     <button class="restart" id="restartBtn">重新開始這個中秋夜</button>
-    <button class="stats-link" id="viewStatsBtn" style="margin-top:14px;">看看其他玩家的結局與故事</button>
+    <div class="nav-links" style="margin-top:14px;"><button class="stats-link" id="viewStatsBtn">查看其他玩家</button><button class="stats-link" id="viewCollectionBtn">我的結局收藏</button></div>
   `;
   document.getElementById('restartBtn').addEventListener('click', () => { resetRun(); render('start'); });
   document.getElementById('lanternBtn').addEventListener('click',lightLantern);
@@ -563,6 +628,7 @@ function renderEnding(id){
     try{await navigator.clipboard.writeText(text);document.getElementById('shareBtn').textContent='已複製到剪貼簿';}catch(e){document.getElementById('shareBtn').textContent=text;}
   });
   document.getElementById('viewStatsBtn').addEventListener('click', () => renderStats(id));
+  document.getElementById('viewCollectionBtn').addEventListener('click', () => renderCollection(id));
 }
 
 async function renderStats(returnToEnding){
@@ -600,37 +666,46 @@ async function renderStats(returnToEnding){
   let storyRecords=await fetchStoryRecords();
   if(!storyRecords){try{storyRecords=JSON.parse(localStorage.getItem('moon-festival-story-log')||'[]');}catch(e){storyRecords=[];}}
   const storySection=document.createElement('section');
-  storySection.innerHTML=`<h2 style="font-size:1.15rem;color:var(--moon);margin-top:26px;">玩家故事紀錄</h2>${storyRecords.slice(0,20).map(item=>`<div class="record-line"><strong>${escapeHtml(item.player||'月光旅人')}</strong> · ${escapeHtml(item.endingTitle||item.ending||'中秋夜')}<br><small>${escapeHtml(item.date?new Date(item.date).toLocaleString():'')}</small><br>${(item.path||[]).map(escapeHtml).join(' → ')||escapeHtml(item.description||'')}</div>`).join('')||'<p class="stats-note">還沒有玩家留下故事紀錄。</p>'}`;
+  // 每位玩家的故事收在資料夾裡,點開才看得到完整路線
+  const recordFolder = item => {
+    const path = cleanPath(item.path);
+    const title = String(item.endingTitle || item.ending || '中秋夜').replace('隱藏結局:','').replace('結局:','');
+    return `<details class="fold"><summary><strong style="color:var(--ink);">${escapeHtml(item.player||'月光旅人')}</strong> · ${escapeHtml(title)}</summary><div class="fold-body"><small>${escapeHtml(item.date?new Date(item.date).toLocaleString():'')}</small><br>${path.length ? path.map(escapeHtml).join(' → ') : escapeHtml(typeof item.description === 'string' ? item.description : '')}</div></details>`;
+  };
+  storySection.innerHTML=`<h2 style="font-size:1.15rem;color:var(--moon);margin-top:26px;">玩家故事紀錄</h2>${storyRecords.slice(0,20).map(recordFolder).join('')||'<p class="stats-note">還沒有玩家留下故事紀錄。</p>'}`;
   card.insertBefore(storySection,document.getElementById('backBtn'));
 
-  document.getElementById('backBtn').addEventListener('click', () => {
-    if (returnToEnding) { renderEnding(returnToEnding); } else if(playerName) { render('start'); } else { renderPlayerEntry(); }
-  });
+  document.getElementById('backBtn').addEventListener('click', () => returnToEnding ? renderEnding(returnToEnding) : backToStart());
 }
 
 function renderWish(){
   stepCount += 1;
+  const wishPrompt = "月光靜靜灑下來。閉上眼睛,把心裡那句話寫下來——";
   card.innerHTML = `
     <div class="step-label">第 ${stepCount} 段 · 中秋夜</div>
+    ${recapHtml()}
     <h1>許願</h1>
-    <p class="story-text">月光靜靜灑下來。閉上眼睛,把心裡那句話寫下來——</p>
+    <p class="story-text">${wishPrompt}</p>
     <input class="wish-input" id="wishInput" maxlength="60" placeholder="輸入你想許的願望...">
     <div class="choices"><button class="choice" id="wishSubmit">許下這個願望</button></div>
   `;
   document.getElementById('wishSubmit').addEventListener('click', () => {
-    wishText = escapeHtml(document.getElementById('wishInput').value.trim() || "一個沒有說出口、只有自己知道的願望");
-    storyLog.push('許下願望：'+wishText);
+    const rawWish = document.getElementById('wishInput').value.trim() || "一個沒有說出口、只有自己知道的願望";
+    wishText = escapeHtml(rawWish);
+    remember(wishPrompt, '許下願望：'+rawWish);
     stepCount += 1;
+    const wishEcho = `你在心裡把「${wishText}」一字一句慢慢說了一遍。一陣風忽然吹過堤岸的芒草,沙沙作響,你分不清是巧合,還是月亮真的聽見了。`;
     card.innerHTML = `
       <div class="step-label">第 ${stepCount} 段 · 中秋夜</div>
-      <div class="story-text">你在心裡把「${wishText}」一字一句慢慢說了一遍。一陣風忽然吹過堤岸的芒草,沙沙作響,你分不清是巧合,還是月亮真的聽見了。</div>
+      ${recapHtml()}
+      <div class="story-text">${wishEcho}</div>
       <div class="choices">
         <button class="choice" id="wishContinue">起身,往回家的路走去</button>
         <button class="choice" id="wishWait">再坐一會兒,等月亮回答</button>
       </div>
     `;
-    document.getElementById('wishContinue').addEventListener('click', () => { storyLog.push('起身回家'); renderEnding('hope'); });
-    document.getElementById('wishWait').addEventListener('click', () => { flags.add('waited'); storyLog.push('等月亮回答'); renderEnding('hope'); });
+    document.getElementById('wishContinue').addEventListener('click', () => { remember(wishEcho, '起身,往回家的路走去'); renderEnding('hope'); });
+    document.getElementById('wishWait').addEventListener('click', () => { flags.add('waited'); remember(wishEcho, '再坐一會兒,等月亮回答'); renderEnding('hope'); });
   });
 }
 
@@ -643,10 +718,12 @@ function render(nodeKey){
   stepCount += 1;
   const c = ctx();
   const choices = node.choices.filter(choice => !choice.when || choice.when(c));
+  const text = resolve(node.text);
   card.innerHTML = `
     <div class="step-label">第 ${stepCount} 段 · 中秋夜</div>
     ${nodeKey === 'start' ? renderStartHeader() : ''}
-    <div class="story-text">${resolve(node.text)}</div>
+    ${recapHtml()}
+    <div class="story-text">${text}</div>
     <div class="choices">
       ${choices.map((choice, i) => `<button class="choice" data-index="${i}">${choice.label}</button>`).join('')}
     </div>
@@ -655,14 +732,14 @@ function render(nodeKey){
     btn.addEventListener('click', () => {
       const choice = choices[btn.dataset.index];
       if (choice.set) flags.add(choice.set);
-      storyLog.push(choice.label);
+      remember(text, choice.label);
       render(choice.next);
     });
   });
 
   if (nodeKey === 'start') {
-    const statsBtn = document.getElementById('startStatsBtn');
-    if (statsBtn) statsBtn.addEventListener('click', () => renderStats(null));
+    document.getElementById('startStatsBtn').addEventListener('click', () => renderStats(null));
+    document.getElementById('startCollectionBtn').addEventListener('click', () => renderCollection(null));
   }
 }
 
@@ -673,7 +750,7 @@ function renderStartHeader(){
     <p class="subtitle">一個中秋夜的分支故事 · 你的選擇決定結局</p>
     <p class="unlock-line">已解鎖 ${unlocked} / ${total} 個結局</p>
     <div class="mission-box"><strong>本輪月光任務</strong><br>${mission.text}</div>
-    <button class="stats-link" id="startStatsBtn">看看其他玩家都選了什麼結局</button>`;
+    <div class="nav-links"><button class="stats-link" id="startStatsBtn">查看其他玩家</button><button class="stats-link" id="startCollectionBtn">我的結局收藏</button></div>`;
 }
 
 renderPlayerEntry();
