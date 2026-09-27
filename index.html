@@ -46,17 +46,37 @@
   .osmanthus:nth-last-child(3){left:28%;animation-delay:-9s}.osmanthus:nth-last-child(2){left:70%;animation-delay:-15s}.osmanthus:nth-last-child(1){left:46%;animation-delay:-4s}
   @keyframes petal-drift{0%{transform:translate3d(0,0,0) rotate(0);opacity:0}12%{opacity:.48}100%{transform:translate3d(42px,-110vh,0) rotate(180deg);opacity:0}}
   @keyframes twinkle{ from{opacity:.35;} to{opacity:.75;} }
-  .decor{ position:fixed; top:0; bottom:0; width:180px; z-index:0; pointer-events:none; }
+  /* ---------- 兩側裝飾:嫦娥、玉兔、祥雲、燈籠 ---------- */
+  .decor{ position:fixed; top:0; bottom:0; width:min(320px, calc((100vw - 800px) / 2)); z-index:0; pointer-events:none; }
   .decor.left{ left:0; } .decor.right{ right:0; }
-  .decor svg{ position:absolute; opacity:.55; animation:float 7s ease-in-out infinite; }
-  .decor.left svg:nth-child(1){ top:8%;  left:18px; width:64px; animation-delay:0s; }
-  .decor.left svg:nth-child(2){ top:42%; left:46px; width:52px; animation-delay:1.5s; }
-  .decor.left svg:nth-child(3){ top:76%; left:10px; width:58px; animation-delay:3s; }
-  .decor.right svg:nth-child(1){ top:14%; right:20px; width:58px; animation-delay:.8s; }
-  .decor.right svg:nth-child(2){ top:48%; right:44px; width:66px; animation-delay:2.2s; }
-  .decor.right svg:nth-child(3){ top:80%; right:14px; width:50px; animation-delay:3.6s; }
+  .decor > svg{ position:absolute; }
+  .decor .lantern-deco{ width:62px; opacity:.6; animation:float 7s ease-in-out infinite; }
+  .decor.left .lantern-deco{ top:7%; left:14%; }
+  .decor.right .lantern-deco{ top:70%; right:12%; width:54px; animation-delay:2.2s; }
+  .decor .branch{ width:56px; opacity:.55; animation:float 8s ease-in-out infinite; }
+  .decor.left .branch{ top:36%; left:58%; animation-delay:1.5s; } .decor.right .branch{ bottom:22%; left:10%; transform:scaleX(-1); animation-delay:3.6s; }
+  .decor .cloud{ width:120px; opacity:.28; animation:drift 16s ease-in-out infinite alternate; }
+  .decor.left .cloud.c1{ top:24%; left:6%; } .decor.left .cloud.c2{ top:52%; right:0; width:90px; animation-delay:-6s; }
+  .decor.right .cloud.c1{ top:6%; left:0; width:100px; animation-delay:-3s; } .decor.right .cloud.c2{ top:60%; right:4%; animation-delay:-9s; }
+  .chang-e{ top:24%; left:50%; width:min(190px, 82%); margin-left:max(-95px, -41%); filter:drop-shadow(0 0 14px rgba(232,200,114,.45)); animation:ascend 9s ease-in-out infinite; }
+  .chang-e .ribbon{ transform-box:fill-box; transform-origin:0% 0%; animation:sway 4.5s ease-in-out infinite; }
+  .chang-e .ribbon.r2{ animation-duration:5.5s; animation-delay:-1.5s; }
+  .jade-rabbit{ bottom:17%; left:50%; width:min(170px, 80%); margin-left:max(-85px, -40%); filter:drop-shadow(0 0 10px rgba(242,233,216,.25)); animation:float 6s ease-in-out infinite; }
+  .jade-rabbit .pestle{ animation:pound 1.3s ease-in-out infinite; }
   @keyframes float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  @keyframes ascend{ 0%,100%{ transform:translate(0,0) rotate(-2deg); } 50%{ transform:translate(6px,-16px) rotate(2deg); } }
+  @keyframes sway{ 0%,100%{ transform:rotate(0deg) skewX(0deg); } 50%{ transform:rotate(3deg) skewX(-4deg); } }
+  @keyframes pound{ 0%,100%{ transform:translateY(0); } 40%{ transform:translateY(-12px); } 55%{ transform:translateY(2px); } }
+  @keyframes drift{ from{ transform:translateX(-14px); } to{ transform:translateX(18px); } }
   @media (max-width: 1180px){ .decor{ display:none; } }
+
+  /* ---------- 煙火與屋簷剪影 ---------- */
+  #fireworks{ position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+  .skyline{ position:fixed; left:0; right:0; bottom:0; height:130px; z-index:0; pointer-events:none; }
+  .skyline svg{ width:100%; height:100%; display:block; }
+  .skyline .window{ animation:flicker 4s ease-in-out infinite; }
+  @keyframes flicker{ 0%,100%{ opacity:.75; } 50%{ opacity:.45; } }
+  @media (max-width: 640px){ .skyline{ height:80px; opacity:.8; } }
 
   main{ position:relative; z-index:1; width:100%; max-width:760px; }
   .card{ background:linear-gradient(180deg, var(--card), #191b34); border:1px solid var(--border); border-radius:20px;
@@ -147,7 +167,7 @@
   .wish-result{color:var(--moon);font-style:italic}.celebrate{position:fixed;inset:0;pointer-events:none;z-index:3;overflow:hidden}.celebrate i{position:absolute;bottom:0;font-style:normal;font-size:22px;animation:floatWish 3s ease-out forwards}@keyframes floatWish{to{transform:translateY(-100vh) rotate(25deg);opacity:0}}
   @media (prefers-reduced-motion:reduce){.ending-scene .spark{animation:none;opacity:1;transform:translate(var(--x),var(--y))}}
   @media (max-width:640px){ .card{ padding:32px 24px; } h1{ font-size:1.5rem; } .story-text{ font-size:1.02rem; line-height:1.85; } }
-  @media (prefers-reduced-motion: reduce){ .card{ animation:none; } .stars{ animation:none; } .decor svg{ animation:none; } .floating-lantern,.firefly,.osmanthus{animation:none;display:none} }
+  @media (prefers-reduced-motion: reduce){ .card{ animation:none; } .stars{ animation:none; } .decor svg, .decor svg *, .skyline .window{ animation:none !important; } #fireworks{ display:none; } .floating-lantern,.firefly,.osmanthus{animation:none;display:none} }
 </style>
 </head>
 <body>
@@ -158,41 +178,99 @@
     <span class="osmanthus">✿</span><span class="osmanthus">✿</span><span class="osmanthus">✿</span>
   </div>
 
-  <div class="decor left">
-    <svg viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="var(--lantern)" stroke-width="2">
+  <canvas id="fireworks" aria-hidden="true"></canvas>
+
+  <div class="decor left" aria-hidden="true">
+    <svg class="lantern-deco" viewBox="0 0 60 90" fill="none" stroke="var(--lantern)" stroke-width="2">
       <line x1="30" y1="2" x2="30" y2="12"/><rect x="16" y="12" width="28" height="6" rx="2" fill="var(--lantern)" stroke="none"/>
-      <path d="M16 18 C10 30 10 55 16 66 L44 66 C50 55 50 30 44 18 Z"/>
+      <path d="M16 18 C10 30 10 55 16 66 L44 66 C50 55 50 30 44 18 Z" fill="rgba(200,85,61,.18)"/>
       <line x1="20" y1="22" x2="20" y2="62"/><line x1="30" y1="22" x2="30" y2="62"/><line x1="40" y1="22" x2="40" y2="62"/>
       <rect x="16" y="66" width="28" height="6" rx="2" fill="var(--lantern)" stroke="none"/><line x1="30" y1="72" x2="30" y2="84"/>
     </svg>
-    <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="var(--moon)" stroke-width="2">
+    <svg class="cloud c1" viewBox="0 0 120 50" fill="none" stroke="var(--ink-dim)" stroke-width="2" stroke-linecap="round">
+      <path d="M8 40 H104 C114 40 116 28 106 26 C108 14 92 10 86 20 C82 6 60 4 56 18 C50 10 36 12 36 24 C28 20 18 26 22 34 C12 32 6 36 8 40 Z"/>
+      <path d="M56 18 C60 24 68 24 70 18" /><path d="M86 20 C88 26 96 26 98 22"/>
+    </svg>
+    <svg class="branch" viewBox="0 0 60 60" fill="none" stroke="var(--moon)" stroke-width="2">
       <path d="M6 54 C20 40 20 20 30 6" stroke-linecap="round"/>
       <circle cx="14" cy="42" r="3.2" fill="var(--moon)" stroke="none"/><circle cx="20" cy="30" r="3.2" fill="var(--moon)" stroke="none"/>
       <circle cx="26" cy="18" r="3.2" fill="var(--moon)" stroke="none"/><circle cx="30" cy="6" r="3.2" fill="var(--moon)" stroke="none"/>
     </svg>
-    <svg viewBox="0 0 70 60" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="var(--ink-dim)" stroke-width="2">
-      <ellipse cx="34" cy="40" rx="22" ry="15"/><circle cx="20" cy="22" r="10"/>
-      <path d="M14 16 C10 4 16 2 18 12" stroke-linecap="round"/><path d="M24 16 C24 2 30 2 28 12" stroke-linecap="round"/>
-      <circle cx="16" cy="22" r="1.6" fill="var(--ink-dim)" stroke="none"/>
+    <svg class="cloud c2" viewBox="0 0 120 50" fill="none" stroke="var(--ink-dim)" stroke-width="2" stroke-linecap="round">
+      <path d="M8 40 H104 C114 40 116 28 106 26 C108 14 92 10 86 20 C82 6 60 4 56 18 C50 10 36 12 36 24 C28 20 18 26 22 34 C12 32 6 36 8 40 Z"/>
+    </svg>
+    <!-- 玉兔搗藥 -->
+    <svg class="jade-rabbit" viewBox="0 0 170 150">
+      <path d="M8 138 C4 124 20 116 32 122 C36 108 60 104 70 116 C80 102 108 104 112 118 C124 110 146 114 148 126 C162 124 168 136 160 140 Z" fill="rgba(185,179,201,.16)" stroke="rgba(185,179,201,.5)" stroke-width="1.5"/>
+      <g fill="#f2e9d8">
+        <path d="M58 60 C50 36 52 18 60 16 C67 24 68 42 66 58 Z"/>
+        <path d="M68 58 C72 34 80 22 87 25 C90 34 83 48 75 60 Z"/>
+        <circle cx="68" cy="70" r="14"/>
+        <ellipse cx="60" cy="102" rx="24" ry="26"/>
+        <circle cx="38" cy="112" r="7"/>
+        <ellipse cx="68" cy="126" rx="14" ry="5"/>
+      </g>
+      <path d="M59 50 C56 38 57 27 60 24" stroke="rgba(200,85,61,.45)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <circle cx="74" cy="67" r="2" fill="#c8553d"/>
+      <circle cx="81" cy="73" r="1.6" fill="#e8a7a0"/>
+      <g class="pestle">
+        <path d="M74 92 C84 88 92 84 100 80" stroke="#f2e9d8" stroke-width="7" stroke-linecap="round" fill="none"/>
+        <rect x="100" y="52" width="8" height="46" rx="4" fill="#c9a24f"/>
+        <rect x="98" y="50" width="12" height="8" rx="3" fill="#e8c872"/>
+      </g>
+      <rect x="92" y="104" width="44" height="7" rx="3.5" fill="#d9694f"/>
+      <path d="M96 111 L132 111 L126 132 L102 132 Z" fill="#c8553d"/>
+      <path d="M102 118 H126" stroke="rgba(255,246,234,.35)" stroke-width="1.5"/>
     </svg>
   </div>
-  <div class="decor right">
-    <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="var(--moon)" stroke-width="2">
-      <rect x="6" y="6" width="48" height="48" rx="8"/><circle cx="30" cy="30" r="12"/>
-      <path d="M30 6 V54 M6 30 H54" stroke-width="1" opacity=".5"/>
+
+  <div class="decor right" aria-hidden="true">
+    <svg class="cloud c1" viewBox="0 0 120 50" fill="none" stroke="var(--ink-dim)" stroke-width="2" stroke-linecap="round">
+      <path d="M8 40 H104 C114 40 116 28 106 26 C108 14 92 10 86 20 C82 6 60 4 56 18 C50 10 36 12 36 24 C28 20 18 26 22 34 C12 32 6 36 8 40 Z"/>
     </svg>
-    <svg viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="var(--lantern)" stroke-width="2">
+    <!-- 嫦娥奔月 -->
+    <svg class="chang-e" viewBox="0 0 200 260">
+      <defs>
+        <linearGradient id="robeGrad" x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0" stop-color="#fff6da"/><stop offset=".55" stop-color="#f0d99a" stop-opacity=".9"/><stop offset="1" stop-color="#e8c872" stop-opacity=".25"/>
+        </linearGradient>
+        <linearGradient id="ribbonGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#f2a7b0"/><stop offset="1" stop-color="#c8553d" stop-opacity=".2"/>
+        </linearGradient>
+      </defs>
+      <path class="ribbon" d="M112 74 C150 64 176 86 160 116 C146 142 150 176 184 204" stroke="url(#ribbonGrad)" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path class="ribbon r2" d="M92 82 C58 78 40 104 56 132 C70 158 56 198 18 236" stroke="url(#ribbonGrad)" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M104 60 C92 72 88 100 90 128 C92 166 76 196 50 226 C72 220 92 230 108 246 C116 226 132 214 154 218 C136 190 126 158 126 126 C126 98 118 72 104 60 Z" fill="url(#robeGrad)"/>
+      <path d="M100 96 C104 120 102 170 90 210" stroke="rgba(200,85,61,.35)" stroke-width="2" fill="none"/>
+      <path d="M96 92 C106 96 116 96 124 92" stroke="#c8553d" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <path d="M112 70 C124 58 136 42 148 26" stroke="#fff6da" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M96 76 C84 86 76 100 78 112" stroke="#fff6da" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <circle cx="150" cy="23" r="4" fill="#fff6da"/>
+      <path d="M92 50 C88 36 98 26 110 30 C118 34 118 46 112 54 C106 60 96 58 92 50 Z" fill="#2a2440"/>
+      <circle cx="104" cy="48" r="10.5" fill="#fff6da"/>
+      <path d="M94 44 C94 34 104 30 112 36 C106 36 100 40 94 44 Z" fill="#2a2440"/>
+      <circle cx="96" cy="30" r="8" fill="#2a2440"/>
+      <path d="M90 28 L108 22" stroke="#e8c872" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="108" cy="22" r="2.5" fill="#c8553d"/>
+    </svg>
+    <svg class="cloud c2" viewBox="0 0 120 50" fill="none" stroke="var(--ink-dim)" stroke-width="2" stroke-linecap="round">
+      <path d="M8 40 H104 C114 40 116 28 106 26 C108 14 92 10 86 20 C82 6 60 4 56 18 C50 10 36 12 36 24 C28 20 18 26 22 34 C12 32 6 36 8 40 Z"/>
+      <path d="M56 18 C60 24 68 24 70 18" />
+    </svg>
+    <svg class="lantern-deco" viewBox="0 0 60 90" fill="none" stroke="var(--lantern)" stroke-width="2">
       <line x1="30" y1="2" x2="30" y2="12"/><rect x="16" y="12" width="28" height="6" rx="2" fill="var(--lantern)" stroke="none"/>
-      <path d="M16 18 C10 30 10 55 16 66 L44 66 C50 55 50 30 44 18 Z"/>
+      <path d="M16 18 C10 30 10 55 16 66 L44 66 C50 55 50 30 44 18 Z" fill="rgba(200,85,61,.18)"/>
       <line x1="20" y1="22" x2="20" y2="62"/><line x1="30" y1="22" x2="30" y2="62"/><line x1="40" y1="22" x2="40" y2="62"/>
       <rect x="16" y="66" width="28" height="6" rx="2" fill="var(--lantern)" stroke="none"/><line x1="30" y1="72" x2="30" y2="84"/>
     </svg>
-    <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="var(--moon)" stroke-width="2">
-      <path d="M54 54 C40 40 40 20 30 6" stroke-linecap="round"/>
-      <circle cx="46" cy="42" r="3.2" fill="var(--moon)" stroke="none"/><circle cx="40" cy="30" r="3.2" fill="var(--moon)" stroke="none"/>
-      <circle cx="34" cy="18" r="3.2" fill="var(--moon)" stroke="none"/><circle cx="30" cy="6" r="3.2" fill="var(--moon)" stroke="none"/>
+    <svg class="branch" viewBox="0 0 60 60" fill="none" stroke="var(--moon)" stroke-width="2">
+      <path d="M6 54 C20 40 20 20 30 6" stroke-linecap="round"/>
+      <circle cx="14" cy="42" r="3.2" fill="var(--moon)" stroke="none"/><circle cx="20" cy="30" r="3.2" fill="var(--moon)" stroke="none"/>
+      <circle cx="26" cy="18" r="3.2" fill="var(--moon)" stroke="none"/><circle cx="30" cy="6" r="3.2" fill="var(--moon)" stroke="none"/>
     </svg>
   </div>
+
+  <div class="skyline" id="skyline" aria-hidden="true"></div>
 
   <main><div class="card" id="card"></div></main>
 
@@ -660,7 +738,7 @@ function renderEnding(id){
   const ending = endings[id];
   const desc = resolve(ending.desc);
   const firstRender=!currentRunSaved;
-  if(firstRender){unlockEnding(id);incrementEndingRemote(id);saveEnding(id);currentRunSaved=true;}
+  if(firstRender){unlockEnding(id);incrementEndingRemote(id);saveEnding(id);currentRunSaved=true;fireworks.celebrate();}
   const records=getRecords();
   if(firstRender)saveStoryRecord({player:playerName||'月光旅人',ending:id,endingTitle:ending.title,description:desc,path:storyLog.slice(),date:new Date().toISOString()});
   const allEndings=[...new Set([...getUnlocked(),id])];
@@ -854,6 +932,110 @@ function renderStartHeader(){
     <p class="unlock-line">已解鎖 ${unlocked} / ${total} 個結局</p>
     <div class="nav-links"><button class="stats-link" id="startStatsBtn">查看其他玩家</button><button class="stats-link" id="startCollectionBtn">我的結局收藏</button>${accountHtml()}</div>`;
 }
+
+/* ---------- 場景:屋簷剪影 ---------- */
+function drawSkyline(){
+  const W = 1440, H = 130, ground = H;
+  // [x, 寬, 牆高, 屋頂高]
+  const houses = [[20,120,40,26],[150,90,56,22],[250,150,34,30],[420,110,48,24],[560,90,30,20],[680,160,44,30],[870,100,36,22],[990,140,52,28],[1150,110,38,24],[1280,140,46,28]];
+  const roof = (x, y, w, h) => `M${x-12} ${y} C${x} ${y-2} ${x+8} ${y-h*.5} ${x+w*.25} ${y-h*.8} L${x+w*.75} ${y-h*.8} C${x+w-8} ${y-h*.5} ${x+w} ${y-2} ${x+w+12} ${y} Z`;
+  let shapes = '', windows = '';
+  houses.forEach(([x, w, wall, rh], i) => {
+    const top = ground - wall;
+    shapes += `<rect x="${x}" y="${top}" width="${w}" height="${wall}"/><path d="${roof(x, top, w, rh)}"/>`;
+    for (let wx = x + 16; wx + 12 < x + w - 8; wx += 34) {
+      if ((wx + i) % 3 !== 0) windows += `<rect class="window" x="${wx}" y="${top + 12}" width="12" height="14" rx="1" style="animation-delay:${-(wx % 7) * .6}s"/>`;
+    }
+  });
+  // 塔:三層屋簷
+  const px = 760, pw = 56;
+  let py = ground - 30;
+  shapes += `<rect x="${px}" y="${py}" width="${pw}" height="30"/>`;
+  [0, 1, 2].forEach(level => {
+    const w = pw - level * 12, x = px + level * 6;
+    shapes += `<path d="${roof(x, py, w, 18)}"/>`;
+    py -= 30;
+    shapes += `<rect x="${x + 6}" y="${py + 16}" width="${w - 12}" height="16"/>`;
+    windows += `<rect class="window" x="${x + w / 2 - 4}" y="${py + 20}" width="8" height="10" rx="1"/>`;
+  });
+  shapes += `<path d="M${px + pw / 2} ${py + 16} L${px + pw / 2} ${py - 10}" stroke="#0e0f22" stroke-width="3"/>`;
+  document.getElementById('skyline').innerHTML =
+    `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice"><defs><linearGradient id="skyFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101126"/><stop offset="1" stop-color="#0b0c1c"/></linearGradient></defs>
+      <g fill="url(#skyFade)">${shapes}</g><g fill="#e8c872">${windows}</g></svg>`;
+}
+drawSkyline();
+
+/* ---------- 場景:煙火(只在卡片兩側施放,不擋文字) ---------- */
+const fireworks = (() => {
+  const canvas = document.getElementById('fireworks');
+  const g = canvas.getContext('2d');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const COLORS = ['#e8c872', '#fff6da', '#c8553d', '#f2a7b0', '#e59a52'];
+  let rockets = [], sparks = [], running = false, nextLaunch = 0;
+
+  function resize(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  // 找出卡片左右的空白區;空間不夠時(手機)改在卡片上方的天空施放
+  function launchX(){
+    const rect = card.getBoundingClientRect();
+    const zones = [[20, rect.left - 40], [rect.right + 40, innerWidth - 20]].filter(([a, b]) => b - a > 100);
+    if (!zones.length) return null;
+    const [a, b] = zones[Math.floor(Math.random() * zones.length)];
+    return a + Math.random() * (b - a);
+  }
+  function launch(x = launchX(), topY){
+    if (x === null) return;
+    const targetY = topY ?? innerHeight * (0.12 + Math.random() * 0.3);
+    rockets.push({ x, y: innerHeight, vy: -(Math.sqrt(2 * 0.12 * (innerHeight - targetY))), color: COLORS[Math.floor(Math.random() * COLORS.length)] });
+    start();
+  }
+  function burst(r){
+    const n = 56 + Math.floor(Math.random() * 24), speed = 2.8 + Math.random() * 1.8;
+    const second = COLORS[Math.floor(Math.random() * COLORS.length)];
+    for (let i = 0; i < n; i++) {
+      const a = (Math.PI * 2 * i) / n, s = speed * (0.6 + Math.random() * 0.5);
+      sparks.push({ x: r.x, y: r.y, px: r.x, py: r.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, fade: 0.009 + Math.random() * 0.008, color: i % 3 ? r.color : second });
+    }
+  }
+  function frame(now){
+    g.clearRect(0, 0, innerWidth, innerHeight);
+    g.globalCompositeOperation = 'lighter';
+    rockets = rockets.filter(r => {
+      r.y += r.vy; r.vy += 0.12;
+      g.fillStyle = r.color; g.beginPath(); g.arc(r.x, r.y, 2, 0, Math.PI * 2); g.fill();
+      if (r.vy >= -0.5) { burst(r); return false; }
+      return true;
+    });
+    sparks = sparks.filter(s => {
+      s.px = s.x; s.py = s.y; s.x += s.vx; s.y += s.vy; s.vx *= 0.975; s.vy = s.vy * 0.975 + 0.035; s.life -= s.fade;
+      g.strokeStyle = s.color; g.globalAlpha = Math.max(s.life, 0); g.lineWidth = 2.4;
+      g.beginPath(); g.moveTo(s.px, s.py); g.lineTo(s.x, s.y); g.stroke();
+      return s.life > 0;
+    });
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    if (!document.hidden && now > nextLaunch) { launch(); nextLaunch = now + 1400 + Math.random() * 2200; }
+    if (rockets.length || sparks.length || launchX() !== null) requestAnimationFrame(frame);
+    else { running = false; g.clearRect(0, 0, innerWidth, innerHeight); }
+  }
+  function start(){ if (!running && !reduced) { running = true; requestAnimationFrame(frame); } }
+
+  resize();
+  addEventListener('resize', () => { resize(); start(); });
+  start();
+  return {
+    // 走到結局時連放一輪;手機沒有兩側空間,就放在畫面上方
+    celebrate(){
+      if (reduced) return;
+      for (let i = 0; i < 6; i++) setTimeout(() => {
+        const x = launchX();
+        launch(x ?? innerWidth * (0.15 + Math.random() * 0.7), x === null ? innerHeight * (0.06 + Math.random() * 0.1) : undefined);
+      }, i * 280);
+    }
+  };
+})();
 
 renderPlayerEntry();
 </script>
