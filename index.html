@@ -99,6 +99,12 @@
   details.fold > summary:hover{ color:var(--moon); } details.fold > summary:focus-visible{ outline:2px solid var(--moon); border-radius:12px; }
   details.fold .fold-body{ padding:0 15px 14px; color:var(--ink-dim); font-size:.92rem; line-height:1.75; }
   details.recap{ margin:0 0 22px; }
+  .delete-row{ display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px 10px; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border); font-size:.85rem; }
+  .delete-row span{ flex:1 1 100%; color:#e88a73; }
+  button.delete-btn{ background:none; border:1px solid var(--border); color:var(--ink-dim); border-radius:999px; padding:5px 14px; font-family:inherit; font-size:.82rem; cursor:pointer; }
+  button.delete-btn:hover{ border-color:#e88a73; color:#e88a73; }
+  button.delete-btn.danger{ background:var(--lantern); border-color:var(--lantern); color:#fff6ea; } button.delete-btn.danger:hover{ filter:brightness(1.1); color:#fff6ea; }
+  button.delete-btn:focus-visible{ outline:2px solid var(--moon); outline-offset:2px; }
   .recap-item{ padding:10px 0; border-top:1px dashed var(--border); white-space:pre-line; }
   .recap-item .picked{ display:block; margin-top:6px; color:var(--moon); }
   .collection{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin:18px 0 22px; }
@@ -547,6 +553,29 @@ function updateRecords(change){
   } catch(e){ /* localStorage 不可用時安靜略過 */ }
 }
 function getUnlocked(){ return getRecords().unlocked; }
+
+// 刪除玩家:本機紀錄直接移除;伺服器上的紀錄無法從這裡刪,改為記下刪除時間,之前的紀錄不再顯示
+const DELETED_KEY = 'moon-festival-deleted-players';
+function getDeletedPlayers(){
+  try { return JSON.parse(localStorage.getItem(DELETED_KEY) || '{}'); }
+  catch(e){ return {}; }
+}
+function isDeletedRecord(item, deleted){
+  const at = deleted[String(item.player || '月光旅人')];
+  return Boolean(at) && (!item.date || item.date <= at);
+}
+function deletePlayer(name){
+  try {
+    const log = JSON.parse(localStorage.getItem('moon-festival-story-log') || '[]');
+    localStorage.setItem('moon-festival-story-log', JSON.stringify(log.filter(item => String(item.player || '月光旅人') !== name)));
+    const players = loadPlayers();
+    delete players[name];
+    localStorage.setItem(PLAYERS_KEY, JSON.stringify(players));
+    const deleted = getDeletedPlayers();
+    deleted[name] = new Date().toISOString();
+    localStorage.setItem(DELETED_KEY, JSON.stringify(deleted));
+  } catch(e){ /* localStorage 不可用時安靜略過 */ }
+}
 function unlockEnding(id){ updateRecords(p => { if (!p.unlocked.includes(id)) p.unlocked.push(id); }); }
 function saveEnding(){ updateRecords(p => { p.plays += 1; }); }
 function escapeHtml(value){return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
@@ -707,6 +736,8 @@ async function renderStats(returnToEnding){
 
   let storyRecords=await fetchStoryRecords();
   if(!storyRecords){try{storyRecords=JSON.parse(localStorage.getItem('moon-festival-story-log')||'[]');}catch(e){storyRecords=[];}}
+  const deleted = getDeletedPlayers();
+  storyRecords = storyRecords.filter(item => !isDeletedRecord(item, deleted));
   const storySection=document.createElement('section');
   // 一位玩家一個資料夾,點開才看得到他每一次的遊玩紀錄
   const players = new Map();
@@ -722,10 +753,30 @@ async function renderStats(returnToEnding){
   };
   const playerFolder = ([name, plays]) => {
     const endingCount = new Set(plays.map(item => item.ending)).size;
-    return `<details class="fold"><summary><strong style="color:var(--ink);">${escapeHtml(name)}</strong> · 玩了 ${plays.length} 次 · 走到 ${endingCount} 種結局</summary><div class="fold-body">${plays.map(playRow).join('')}</div></details>`;
+    return `<details class="fold"><summary><strong style="color:var(--ink);">${escapeHtml(name)}</strong> · 玩了 ${plays.length} 次 · 走到 ${endingCount} 種結局</summary><div class="fold-body">${plays.map(playRow).join('')}
+      <div class="delete-row" data-name="${escapeHtml(name)}"><button class="delete-btn" data-action="ask">🗑 刪除這位玩家的資料</button></div></div></details>`;
   };
-  storySection.innerHTML=`<h2 style="font-size:1.15rem;color:var(--moon);margin-top:26px;">玩家故事紀錄</h2>${[...players].map(playerFolder).join('')||'<p class="stats-note">還沒有玩家留下故事紀錄。</p>'}`;
+  const emptyNote = '<p class="stats-note">還沒有玩家留下故事紀錄。</p>';
+  storySection.innerHTML=`<h2 style="font-size:1.15rem;color:var(--moon);margin-top:26px;">玩家故事紀錄</h2>${[...players].map(playerFolder).join('')||emptyNote}`;
   card.insertBefore(storySection,document.getElementById('backBtn'));
+
+  // 刪除:先問一次,確定後移除該玩家的故事紀錄與結局收藏
+  storySection.addEventListener('click', event => {
+    const btn = event.target.closest('.delete-row button');
+    if (!btn) return;
+    const row = btn.closest('.delete-row');
+    const name = row.dataset.name;
+    if (btn.dataset.action === 'ask') {
+      row.innerHTML = `<span>確定刪除「${escapeHtml(name)}」的所有遊玩紀錄與結局收藏?${name === playerName ? '<br>(這是你目前登入的玩家,你的進度也會歸零)' : ''}</span>
+        <button class="delete-btn danger" data-action="confirm">確定刪除</button><button class="delete-btn" data-action="cancel">取消</button>`;
+    } else if (btn.dataset.action === 'cancel') {
+      row.innerHTML = '<button class="delete-btn" data-action="ask">🗑 刪除這位玩家的資料</button>';
+    } else {
+      deletePlayer(name);
+      row.closest('details').remove();
+      if (!storySection.querySelector('details')) storySection.insertAdjacentHTML('beforeend', emptyNote);
+    }
+  });
 
   document.getElementById('backBtn').addEventListener('click', () => returnToEnding ? renderEnding(returnToEnding) : backToStart());
 }
