@@ -108,7 +108,38 @@
   .ending-scene .spark:nth-child(1){--x:-90px;--y:-65px;animation-delay:.05s}.ending-scene .spark:nth-child(2){--x:-60px;--y:-110px;animation-delay:.12s}.ending-scene .spark:nth-child(3){--x:-30px;--y:-78px;animation-delay:.2s}.ending-scene .spark:nth-child(4){--x:0px;--y:-125px;animation-delay:.28s}.ending-scene .spark:nth-child(5){--x:30px;--y:-80px;animation-delay:.36s}.ending-scene .spark:nth-child(6){--x:60px;--y:-108px;animation-delay:.44s}.ending-scene .spark:nth-child(7){--x:90px;--y:-65px;animation-delay:.52s}
   @keyframes rise{from{transform:translate(0,0) scale(.2);opacity:0}to{transform:translate(var(--x),var(--y)) scale(1.2);opacity:1}}
   .ending-title{display:block;font-size:1.2rem;color:var(--moon);margin:0 0 8px}.score-line,.mission-box,.record-line{padding:12px 15px;border:1px solid var(--border);border-radius:12px;background:#191b34;margin:14px 0;color:var(--ink-dim);font-size:.92rem;line-height:1.7}
-  .mission-box strong{color:var(--moon)} .ending-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+  .mission-box strong{color:var(--moon)}
+  /* ---------- 結局結算卡 ---------- */
+  .summary{ margin:22px 0 14px; padding:18px; border-radius:16px; border:1px solid rgba(232,200,114,.28);
+    background:radial-gradient(circle at 100% 0%, rgba(232,200,114,.14), transparent 55%), radial-gradient(circle at 0% 100%, rgba(200,85,61,.16), transparent 55%), #1a1c36;
+    box-shadow:inset 0 1px 0 rgba(255,246,218,.06), 0 10px 30px rgba(0,0,0,.25); }
+  .summary-head{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .avatar{ flex:none; width:44px; height:44px; border-radius:50%; display:grid; place-items:center; font-weight:700; font-size:1.15rem; color:#2a1a10;
+    background:radial-gradient(circle at 35% 30%, #fff6da, var(--moon) 55%, var(--lantern)); box-shadow:0 0 18px rgba(232,200,114,.45); }
+  .summary-name{ flex:1; min-width:130px; line-height:1.35; } .summary-name strong{ display:block; font-size:1.05rem; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .summary-name small{ color:var(--ink-dim); font-size:.8rem; white-space:nowrap; }
+  @media (max-width:480px){ .summary{ padding:15px; } .summary-head .chip{ margin-left:56px; } }
+  .chip{ font-size:.78rem; padding:5px 11px; border-radius:999px; color:var(--moon); background:rgba(232,200,114,.12); border:1px solid rgba(232,200,114,.35); white-space:nowrap; }
+  .mission{ display:flex; gap:12px; align-items:center; margin:16px 0; padding:13px 15px; border-radius:12px; line-height:1.5; }
+  .mission .mission-icon{ flex:none; width:38px; height:38px; border-radius:10px; display:grid; place-items:center; font-size:1.2rem; }
+  .mission small{ display:block; font-size:.76rem; letter-spacing:.08em; } .mission strong{ font-weight:500; font-size:.95rem; }
+  .mission.done{ background:linear-gradient(100deg, rgba(232,200,114,.22), rgba(232,200,114,.05)); border:1px solid rgba(232,200,114,.55); box-shadow:0 0 22px rgba(232,200,114,.15); }
+  .mission.done .mission-icon{ background:var(--moon); box-shadow:0 0 14px rgba(232,200,114,.6); } .mission.done small{ color:var(--moon); } .mission.done strong{ color:#fff6da; }
+  .mission.todo{ background:rgba(200,85,61,.08); border:1px dashed rgba(200,85,61,.6); }
+  .mission.todo .mission-icon{ background:rgba(200,85,61,.2); } .mission.todo small{ color:#e88a73; } .mission.todo strong{ color:var(--ink); }
+  .progress-label{ display:flex; justify-content:space-between; align-items:baseline; font-size:.85rem; color:var(--ink-dim); margin-bottom:7px; }
+  .progress-label b{ color:var(--moon); font-size:1.05rem; }
+  .progress-bar{ height:10px; border-radius:999px; background:rgba(58,61,99,.7); overflow:hidden; }
+  .progress-bar > div{ height:100%; border-radius:999px; background:linear-gradient(90deg, var(--lantern), #e59a52, var(--moon)); background-size:200% 100%;
+    box-shadow:0 0 12px rgba(232,200,114,.5); animation:shimmer 3s linear infinite; }
+  @keyframes shimmer{ from{ background-position:200% 0; } to{ background-position:0 0; } }
+  .moon-dots{ display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+  .moon-dots span{ width:16px; height:16px; border-radius:50%; background:rgba(58,61,99,.8); border:1px solid var(--border); }
+  .moon-dots span.lit{ background:radial-gradient(circle at 35% 30%, #fff6da, var(--moon)); border-color:var(--moon); box-shadow:0 0 8px rgba(232,200,114,.55); }
+  .moon-dots span.now{ outline:2px solid var(--lantern); outline-offset:2px; }
+  .secret-hint{ margin:12px 0 0; font-size:.85rem; color:var(--moon); font-style:italic; }
+  @media (prefers-reduced-motion:reduce){ .progress-bar > div{ animation:none; } }
+  .ending-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
   button.secondary{background:#262848;color:var(--ink);border:1px solid var(--border);border-radius:10px;padding:11px;font:inherit;cursor:pointer} button.secondary:hover{border-color:var(--moon)}
   .wish-result{color:var(--moon);font-style:italic}.celebrate{position:fixed;inset:0;pointer-events:none;z-index:3;overflow:hidden}.celebrate i{position:absolute;bottom:0;font-style:normal;font-size:22px;animation:floatWish 3s ease-out forwards}@keyframes floatWish{to{transform:translateY(-100vh) rotate(25deg);opacity:0}}
   @media (prefers-reduced-motion:reduce){.ending-scene .spark{animation:none;opacity:1;transform:translate(var(--x),var(--y))}}
@@ -607,18 +638,31 @@ function renderEnding(id){
   if(firstRender)saveStoryRecord({player:playerName||'月光旅人',ending:id,endingTitle:ending.title,description:desc,path:storyLog.slice(),date:new Date().toISOString()});
   const missionDone=mission.test({visited,flags,ending:id,steps:stepCount});
   const allEndings=[...new Set([...getUnlocked(),id])];
-  const regularEndingCount=Object.keys(endings).length-1;
+  const regularIds=Object.keys(endings).filter(key=>key!=='hidden');
+  const regularUnlocked=regularIds.filter(key=>allEndings.includes(key));
   const secretUnlocked=Object.keys(endings).filter(key=>key!=='hidden').every(key=>allEndings.includes(key));
   card.innerHTML = `
     <div class="ending-scene" aria-hidden="true"><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span></div>
     <span class="ending-tag">${ending.title}</span>
     <strong class="ending-title">${ending.rating}</strong>
     <p style="color:var(--ink-dim);font-size:1.02rem;margin-bottom:6px;">${desc}</p>
-    <div class="record-line">玩家：${escapeHtml(playerName||'月光旅人')}</div>
-    ${recapHtml()}
-    <div class="score-line">${missionDone ? '任務完成！' : '再玩一次挑戰任務'}<br>${missionDone ? '🌟 ' + mission.text : '🎯 ' + mission.text}</div>
     ${id==='hidden' ? '<p class="wish-result">你走過了每一段中秋夜，整片夜空都為你亮起。</p>' : ''}
-    <div class="record-line">${escapeHtml(playerName)} 已遊玩 ${records.plays} 次 · 已解鎖 ${allEndings.filter(key=>key!=='hidden').length} / ${regularEndingCount} 個一般結局${allEndings.includes('hidden') ? ' · 隱藏結局已解鎖' : ''}${secretUnlocked && !allEndings.includes('hidden') ? '<br>月色深處似乎還藏著一段故事……' : ''}</div>
+    <section class="summary">
+      <div class="summary-head">
+        <span class="avatar" aria-hidden="true">${escapeHtml([...playerName][0] || '月')}</span>
+        <div class="summary-name"><strong>${escapeHtml(playerName)}</strong><small>第 ${records.plays} 個中秋夜</small></div>
+        <span class="chip">🏮 本輪走了 ${transcript.length} 段</span>
+      </div>
+      <div class="mission ${missionDone ? 'done' : 'todo'}">
+        <span class="mission-icon" aria-hidden="true">${missionDone ? '🌟' : '🎯'}</span>
+        <div><small>月光任務 · ${missionDone ? '完成！' : '未達成 · 再挑戰一次'}</small><strong>${mission.text}</strong></div>
+      </div>
+      <div class="progress-label"><span>結局收集</span><span><b>${regularUnlocked.length}</b> / ${regularIds.length}${allEndings.includes('hidden') ? ' · 🌕 隱藏結局已解鎖' : ''}</span></div>
+      <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${regularIds.length}" aria-valuenow="${regularUnlocked.length}"><div style="width:${Math.max(4, Math.round(regularUnlocked.length / regularIds.length * 100))}%"></div></div>
+      <div class="moon-dots" aria-hidden="true">${regularIds.map(key => `<span class="${allEndings.includes(key) ? 'lit' : ''} ${key === id ? 'now' : ''}" title="${allEndings.includes(key) ? endings[key].title.replace('結局:','') : '尚未解鎖'}"></span>`).join('')}</div>
+      ${secretUnlocked && !allEndings.includes('hidden') ? '<p class="secret-hint">✨ 月色深處似乎還藏著一段故事……</p>' : ''}
+    </section>
+    ${recapHtml()}
     ${secretUnlocked && !allEndings.includes('hidden') ? '<button class="secondary" id="secretBtn" style="width:100%;margin:0 0 12px;">追尋月色深處的故事</button>' : ''}
     <div class="ending-actions"><button class="secondary" id="lanternBtn" aria-pressed="false">點亮一盞願望燈</button><button class="secondary" id="shareBtn">分享本次結局</button></div>
     <button class="restart" id="restartBtn">重新開始這個中秋夜</button>
