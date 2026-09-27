@@ -86,7 +86,12 @@
   .stat-row .stat-bar-bg{ background:var(--border); border-radius:6px; height:10px; overflow:hidden; }
   .stat-row .stat-bar-fill{ background:var(--moon); height:100%; border-radius:6px; transition:width .5s ease; }
   .stats-note{ color:var(--ink-dim); font-size:.85rem; margin-top:22px; }
-  .nav-links{ display:flex; flex-wrap:wrap; gap:6px 18px; margin-bottom:26px; } .nav-links .stats-link{ margin-bottom:0; }
+  .nav-links{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 18px; margin-bottom:26px; } .nav-links .stats-link{ margin-bottom:0; }
+  .account{ margin-left:auto; display:flex; align-items:center; gap:10px; font-size:.85rem; color:var(--ink-dim); }
+  .account strong{ color:var(--ink); font-weight:500; max-width:9em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  button.logout{ background:none; border:1px solid rgba(200,85,61,.6); color:#e88a73; border-radius:999px; padding:3px 12px;
+    font-family:inherit; font-size:.8rem; cursor:pointer; transition:background .15s ease, color .15s ease; }
+  button.logout:hover{ background:var(--lantern); color:#fff6ea; } button.logout:focus-visible{ outline:2px solid var(--moon); outline-offset:2px; }
   details.fold{ border:1px solid var(--border); border-radius:12px; background:#191b34; margin:10px 0; }
   details.fold > summary{ cursor:pointer; padding:12px 15px; color:var(--ink-dim); font-size:.92rem; list-style:none; }
   details.fold > summary::-webkit-details-marker{ display:none; }
@@ -197,7 +202,7 @@ const CONFIG = {
    choice.set:選了之後記住一件事;choice.when:條件成立才出現這個選項。 */
 const story = {
   start: {
-    text: ctx => (ctx.seenAny ? "又是一年中秋。" : "") + "中秋夜,天色一點一點沉下來。月亮從對面屋簷後探出半張臉,巷子裡飄來炭火的煙味,鄰居的燈籠一盞一盞亮起。\n\n你站在自家門口,手裡拎著一盒月餅。今晚,你得決定要怎麼過。",
+    text: ctx => (ctx.seenAny ? "又是一年中秋夜" : "中秋夜") + ",天色一點一點沉下來。月亮從對面屋簷後探出半張臉,巷子裡飄來炭火的煙味,鄰居的燈籠一盞一盞亮起。\n\n你站在自家門口,手裡拎著一盒月餅。今晚,你得決定要怎麼過。",
     choices: [
       { label: "回家和家人一起烤肉、拜月娘", next: "bbq" },
       { label: "一個人到河堤走走,靜靜賞月", next: "walk" }
@@ -589,6 +594,16 @@ function renderPlayerEntry(){
   document.getElementById('entryStoriesBtn').addEventListener('click',()=>renderStats(null));}
 
 // 回到開頭畫面(從統計或收藏頁返回時用,不重抽任務)
+// 目前登入的玩家 + 登出按鈕
+function accountHtml(){
+  return `<span class="account">👤 <strong>${escapeHtml(playerName)}</strong><button class="logout" id="logoutBtn">登出</button></span>`;
+}
+function logout(){
+  playerName = '';
+  resetRun();
+  renderPlayerEntry();
+}
+
 function backToStart(){
   if (!playerName) { renderPlayerEntry(); return; }
   stepCount = 0; render('start');
@@ -644,7 +659,7 @@ function renderEnding(id){
     ${secretUnlocked && !allEndings.includes('hidden') ? '<button class="secondary" id="secretBtn" style="width:100%;margin:0 0 12px;">追尋月色深處的故事</button>' : ''}
     <div class="ending-actions"><button class="secondary" id="lanternBtn" aria-pressed="false">點亮一盞願望燈</button><button class="secondary" id="shareBtn">分享本次結局</button></div>
     <button class="restart" id="restartBtn">重新開始這個中秋夜</button>
-    <div class="nav-links" style="margin-top:14px;"><button class="stats-link" id="viewStatsBtn">查看其他玩家</button><button class="stats-link" id="viewCollectionBtn">我的結局收藏</button></div>
+    <div class="nav-links" style="margin-top:14px;"><button class="stats-link" id="viewStatsBtn">查看其他玩家</button><button class="stats-link" id="viewCollectionBtn">我的結局收藏</button>${accountHtml()}</div>
   `;
   document.getElementById('restartBtn').addEventListener('click', () => { resetRun(); render('start'); });
   document.getElementById('lanternBtn').addEventListener('click',lightLantern);
@@ -655,6 +670,7 @@ function renderEnding(id){
   });
   document.getElementById('viewStatsBtn').addEventListener('click', () => renderStats(id));
   document.getElementById('viewCollectionBtn').addEventListener('click', () => renderCollection(id));
+  document.getElementById('logoutBtn').addEventListener('click', logout);
 }
 
 async function renderStats(returnToEnding){
@@ -775,6 +791,7 @@ function render(nodeKey){
   if (nodeKey === 'start') {
     document.getElementById('startStatsBtn').addEventListener('click', () => renderStats(null));
     document.getElementById('startCollectionBtn').addEventListener('click', () => renderCollection(null));
+    document.getElementById('logoutBtn').addEventListener('click', logout);
   }
 }
 
@@ -784,7 +801,7 @@ function renderStartHeader(){
   return `<h1>月圓之夜</h1>
     <p class="subtitle">一個中秋夜的分支故事 · 你的選擇決定結局</p>
     <p class="unlock-line">已解鎖 ${unlocked} / ${total} 個結局</p>
-    <div class="nav-links"><button class="stats-link" id="startStatsBtn">查看其他玩家</button><button class="stats-link" id="startCollectionBtn">我的結局收藏</button></div>`;
+    <div class="nav-links"><button class="stats-link" id="startStatsBtn">查看其他玩家</button><button class="stats-link" id="startCollectionBtn">我的結局收藏</button>${accountHtml()}</div>`;
 }
 
 renderPlayerEntry();
