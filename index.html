@@ -442,8 +442,7 @@ const endings = {
 
 /* ---------- 引擎 ---------- */
 const card = document.getElementById('card');
-const UNLOCK_KEY = 'moon-festival-unlocked-endings';
-const RECORD_KEY = 'moon-festival-records-v2';
+const PLAYERS_KEY = 'moon-festival-players';
 const MISSIONS = [
   { text: '走進月光門，看看傳說的另一端', test: run => run.visited.includes('chang_e') },
   { text: '選擇一個溫柔的夜晚結局', test: run => ['peace','reunion_quiet','homeward','homeward2','late_reunion'].includes(run.ending) },
@@ -500,32 +499,40 @@ try {
   localStorage.setItem('moon-festival-story-log', JSON.stringify(log.map(item => ({ ...item, path: cleanPath(item.path) }))));
 } catch(e){ /* localStorage 不可用時安靜略過 */ }
 
-function getUnlocked(){
-  try { return JSON.parse(localStorage.getItem(UNLOCK_KEY) || '[]'); }
-  catch(e){ return []; }
-}
-function unlockEnding(id){
+// 每位玩家各自的解鎖結局與遊玩次數:{ 玩家名稱: { unlocked:[], plays, wishLights } }
+const emptyPlayer = () => ({ unlocked: [], plays: 0, wishLights: 0 });
+function loadPlayers(){
   try {
-    const list = getUnlocked();
-    if (!list.includes(id)) { list.push(id); localStorage.setItem(UNLOCK_KEY, JSON.stringify(list)); }
+    const raw = localStorage.getItem(PLAYERS_KEY);
+    if (raw) return JSON.parse(raw);
+    // 第一次使用:從既有的故事紀錄整理出每位玩家玩過的結局
+    const players = {};
+    JSON.parse(localStorage.getItem('moon-festival-story-log') || '[]').forEach(item => {
+      const name = String(item.player || '月光旅人');
+      const p = players[name] || (players[name] = emptyPlayer());
+      p.plays += 1;
+      if (endings[item.ending] && !p.unlocked.includes(item.ending)) p.unlocked.push(item.ending);
+    });
+    localStorage.setItem(PLAYERS_KEY, JSON.stringify(players));
+    return players;
+  } catch(e){ return {}; }
+}
+function getRecords(){ return { ...emptyPlayer(), ...loadPlayers()[playerName] }; }
+function updateRecords(change){
+  try {
+    const players = loadPlayers();
+    const p = { ...emptyPlayer(), ...players[playerName] };
+    change(p);
+    players[playerName] = p;
+    localStorage.setItem(PLAYERS_KEY, JSON.stringify(players));
   } catch(e){ /* localStorage 不可用時安靜略過 */ }
 }
-
-function getRecords(){
-  try { return JSON.parse(localStorage.getItem(RECORD_KEY) || '{"plays":0,"wishLights":0,"endings":[]}'); }
-  catch(e){ return {plays:0,wishLights:0,endings:[]}; }
-}
-function saveEnding(id){
-  const records = getRecords();
-  records.plays += 1;
-  if (!records.endings.includes(id)) records.endings.push(id);
-  try { localStorage.setItem(RECORD_KEY, JSON.stringify(records)); } catch(e) {}
-  return records;
-}
+function getUnlocked(){ return getRecords().unlocked; }
+function unlockEnding(id){ updateRecords(p => { if (!p.unlocked.includes(id)) p.unlocked.push(id); }); }
+function saveEnding(){ updateRecords(p => { p.plays += 1; }); }
 function escapeHtml(value){return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
 function lightLantern(){
-  const records=getRecords(); records.wishLights=(records.wishLights||0)+1;
-  try{localStorage.setItem(RECORD_KEY,JSON.stringify(records));}catch(e){}
+  updateRecords(p => { p.wishLights += 1; });
   const layer=document.createElement('div');layer.className='celebrate';layer.setAttribute('aria-hidden','true');
   ['🏮','✨','🌕','🎐','⭐'].forEach((symbol,i)=>{const item=document.createElement('i');item.textContent=symbol;item.style.left=(12+i*18)+'%';item.style.animationDelay=(i*.13)+'s';layer.appendChild(item)});
   document.body.appendChild(layer);setTimeout(()=>layer.remove(),3400);
@@ -561,13 +568,11 @@ async function fetchStoryRecords(){
   try { const res=await fetch(CONFIG.WORKER_URL+'/stories'); if(!res.ok)return null; return await res.json(); } catch(e){return null;}
 }
 function renderPlayerEntry(){
-  card.innerHTML=`<h1>月圓之夜</h1><p class="subtitle">先留下你的名稱，再開始今晚的故事。</p><label for="playerNameInput">玩家名稱</label><input class="wish-input" id="playerNameInput" maxlength="24" autocomplete="nickname" placeholder="輸入你想使用的名稱"><div class="choices"><button class="choice" id="enterStoryBtn">進入故事</button></div><div class="nav-links" style="margin-top:18px;"><button class="stats-link" id="entryStoriesBtn">查看其他玩家</button><button class="stats-link" id="entryCollectionBtn">我的結局收藏</button></div>`;
+  card.innerHTML=`<h1>月圓之夜</h1><p class="subtitle">先留下你的名稱，再開始今晚的故事。</p><label for="playerNameInput">玩家名稱</label><input class="wish-input" id="playerNameInput" maxlength="24" autocomplete="nickname" placeholder="輸入你想使用的名稱"><div class="choices"><button class="choice" id="enterStoryBtn">進入故事</button></div><div class="nav-links" style="margin-top:18px;"><button class="stats-link" id="entryStoriesBtn">查看其他玩家</button></div>`;
   const input=document.getElementById('playerNameInput');
   document.getElementById('enterStoryBtn').addEventListener('click',()=>{playerName=input.value.trim().slice(0,24)||'月光旅人';resetRun();render('start');});
   input.addEventListener('keydown',event=>{if(event.key==='Enter')document.getElementById('enterStoryBtn').click();});
-  document.getElementById('entryStoriesBtn').addEventListener('click',()=>renderStats(null));
-  document.getElementById('entryCollectionBtn').addEventListener('click',()=>renderCollection(null));
-}
+  document.getElementById('entryStoriesBtn').addEventListener('click',()=>renderStats(null));}
 
 // 回到開頭畫面(從統計或收藏頁返回時用,不重抽任務)
 function backToStart(){
@@ -581,7 +586,7 @@ function renderCollection(returnToEnding){
   const ids = Object.keys(endings);
   const regular = ids.filter(id => id !== 'hidden');
   card.innerHTML = `
-    <h1 style="font-size:1.3rem;margin-bottom:4px;">我的結局收藏</h1>
+    <h1 style="font-size:1.3rem;margin-bottom:4px;">${escapeHtml(playerName)} 的結局收藏</h1>
     <p class="unlock-line" style="margin-bottom:6px;">已解鎖 ${regular.filter(id => unlocked.includes(id)).length} / ${regular.length} 個一般結局${unlocked.includes('hidden') ? ' · 隱藏結局已解鎖' : ''}</p>
     <p class="subtitle">共遊玩 ${records.plays} 次</p>
     <div class="collection">${ids.map(id => unlocked.includes(id)
@@ -613,7 +618,7 @@ function renderEnding(id){
     ${recapHtml()}
     <div class="score-line">${missionDone ? '任務完成！' : '再玩一次挑戰任務'}<br>${missionDone ? '🌟 ' + mission.text : '🎯 ' + mission.text}</div>
     ${id==='hidden' ? '<p class="wish-result">你走過了每一段中秋夜，整片夜空都為你亮起。</p>' : ''}
-    <div class="record-line">遊玩 ${records.plays} 次 · 已解鎖 ${allEndings.filter(key=>key!=='hidden').length} / ${regularEndingCount} 個一般結局${allEndings.includes('hidden') ? ' · 隱藏結局已解鎖' : ''}${secretUnlocked && !allEndings.includes('hidden') ? '<br>月色深處似乎還藏著一段故事……' : ''}</div>
+    <div class="record-line">${escapeHtml(playerName)} 已遊玩 ${records.plays} 次 · 已解鎖 ${allEndings.filter(key=>key!=='hidden').length} / ${regularEndingCount} 個一般結局${allEndings.includes('hidden') ? ' · 隱藏結局已解鎖' : ''}${secretUnlocked && !allEndings.includes('hidden') ? '<br>月色深處似乎還藏著一段故事……' : ''}</div>
     ${secretUnlocked && !allEndings.includes('hidden') ? '<button class="secondary" id="secretBtn" style="width:100%;margin:0 0 12px;">追尋月色深處的故事</button>' : ''}
     <div class="ending-actions"><button class="secondary" id="lanternBtn" aria-pressed="false">點亮一盞願望燈</button><button class="secondary" id="shareBtn">分享本次結局</button></div>
     <button class="restart" id="restartBtn">重新開始這個中秋夜</button>
