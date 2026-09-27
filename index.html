@@ -449,7 +449,6 @@ const MISSIONS = [
   { text: '選擇一個溫柔的夜晚結局', test: run => ['peace','reunion_quiet','homeward','homeward2','late_reunion'].includes(run.ending) },
   { text: '在故事中做出至少 6 次選擇', test: run => run.steps >= 6 },
   { text: '找到一個平常不會走的分支', test: run => ['rabbit','bbq_make_lantern','bbq_neighbor'].some(k => run.visited.includes(k)) },
-  { text: '讓烤肉和賞月兩條路線交會一次', test: run => run.visited.includes('walk') && run.visited.includes('bbq_rooftop') || run.flags.has('from_bbq') },
   { text: '讓奶奶給的月餅派上用場', test: run => run.flags.has('split_mooncake') },
   { text: '在停電的夜裡找到光', test: run => run.visited.includes('bbq_blackout') }
 ];
@@ -666,13 +665,23 @@ async function renderStats(returnToEnding){
   let storyRecords=await fetchStoryRecords();
   if(!storyRecords){try{storyRecords=JSON.parse(localStorage.getItem('moon-festival-story-log')||'[]');}catch(e){storyRecords=[];}}
   const storySection=document.createElement('section');
-  // 每位玩家的故事收在資料夾裡,點開才看得到完整路線
-  const recordFolder = item => {
+  // 一位玩家一個資料夾,點開才看得到他每一次的遊玩紀錄
+  const players = new Map();
+  storyRecords.forEach(item => {
+    const name = String(item.player || '月光旅人');
+    if (!players.has(name)) players.set(name, []);
+    players.get(name).push(item);
+  });
+  const playRow = item => {
     const path = cleanPath(item.path);
     const title = String(item.endingTitle || item.ending || '中秋夜').replace('隱藏結局:','').replace('結局:','');
-    return `<details class="fold"><summary><strong style="color:var(--ink);">${escapeHtml(item.player||'月光旅人')}</strong> · ${escapeHtml(title)}</summary><div class="fold-body"><small>${escapeHtml(item.date?new Date(item.date).toLocaleString():'')}</small><br>${path.length ? path.map(escapeHtml).join(' → ') : escapeHtml(typeof item.description === 'string' ? item.description : '')}</div></details>`;
+    return `<div class="recap-item"><strong style="color:var(--moon);">${escapeHtml(title)}</strong> <small>${escapeHtml(item.date?new Date(item.date).toLocaleString():'')}</small><br>${path.length ? path.map(escapeHtml).join(' → ') : escapeHtml(typeof item.description === 'string' ? item.description : '')}</div>`;
   };
-  storySection.innerHTML=`<h2 style="font-size:1.15rem;color:var(--moon);margin-top:26px;">玩家故事紀錄</h2>${storyRecords.slice(0,20).map(recordFolder).join('')||'<p class="stats-note">還沒有玩家留下故事紀錄。</p>'}`;
+  const playerFolder = ([name, plays]) => {
+    const endingCount = new Set(plays.map(item => item.ending)).size;
+    return `<details class="fold"><summary><strong style="color:var(--ink);">${escapeHtml(name)}</strong> · 玩了 ${plays.length} 次 · 走到 ${endingCount} 種結局</summary><div class="fold-body">${plays.map(playRow).join('')}</div></details>`;
+  };
+  storySection.innerHTML=`<h2 style="font-size:1.15rem;color:var(--moon);margin-top:26px;">玩家故事紀錄</h2>${[...players].map(playerFolder).join('')||'<p class="stats-note">還沒有玩家留下故事紀錄。</p>'}`;
   card.insertBefore(storySection,document.getElementById('backBtn'));
 
   document.getElementById('backBtn').addEventListener('click', () => returnToEnding ? renderEnding(returnToEnding) : backToStart());
