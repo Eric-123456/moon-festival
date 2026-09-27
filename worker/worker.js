@@ -13,11 +13,15 @@
 const ENDINGS = [
   "gratitude",
   "reunion_quiet",
+  "candlelight",
+  "rooftop_promise",
+  "extra_bowl",
   "legend",
   "homeward2",
   "homeward",
   "hope",
   "peace",
+  "late_reunion",
   "hidden"
 ];
 

@@ -155,9 +155,12 @@ const CONFIG = {
   WORKER_URL: "https://moon-festival-stats.YOUR-SUBDOMAIN.workers.dev"
 };
 
+/* ---------- 故事資料 ----------
+   text / desc 可以是字串,也可以是 ctx => 字串,依本輪的選擇(ctx.has)或過去解鎖的結局(ctx.seen)改變內容。
+   choice.set:選了之後記住一件事;choice.when:條件成立才出現這個選項。 */
 const story = {
   start: {
-    text: "中秋夜,天色一點一點沉下來。月亮從對面屋簷後探出半張臉,巷子裡飄來炭火的煙味,鄰居的燈籠一盞一盞亮起。\n\n你站在自家門口,手裡拎著一盒月餅。今晚,你得決定要怎麼過。",
+    text: ctx => (ctx.seenAny ? "又是一年中秋。" : "") + "中秋夜,天色一點一點沉下來。月亮從對面屋簷後探出半張臉,巷子裡飄來炭火的煙味,鄰居的燈籠一盞一盞亮起。\n\n你站在自家門口,手裡拎著一盒月餅。今晚,你得決定要怎麼過。",
     choices: [
       { label: "回家和家人一起烤肉、拜月娘", next: "bbq" },
       { label: "一個人到河堤走走,靜靜賞月", next: "walk" }
@@ -173,80 +176,167 @@ const story = {
     ]
   },
   bbq_help: {
-    text: "你蹲在爐邊仔細翻著肉,油脂滴在炭火上滋滋作響。弟妹搶著要吃你烤的第一片。",
-    choices: [{ label: "繼續烤", next: "bbq_help_praise" }]
-  },
-  bbq_help_praise: {
-    text: "爸爸拍拍你的肩:「手腳比以前俐落多了。」你笑了笑,心裡有點得意。",
-    choices: [{ label: "把肉端上桌", next: "bbq_together" }]
+    text: "你蹲在爐邊仔細翻著肉,油脂滴在炭火上滋滋作響。第一片烤得恰到好處,弟妹眼巴巴地盯著你的夾子。",
+    choices: [
+      { label: "把第一片夾給弟妹", next: "bbq_together", set: "shared_meat" },
+      { label: "先夾給一直在忙供桌的奶奶", next: "bbq_together", set: "grandma_first" }
+    ]
   },
   bbq_sneak: {
     text: "你偷偷咬了一口——豆沙甜得剛好。奶奶忽然轉頭看你,你整個人僵住。",
-    choices: [{ label: "等奶奶開口", next: "bbq_grandma_mooncake" }]
+    choices: [
+      { label: "老實承認,掰一半分給奶奶", next: "bbq_grandma_mooncake", set: "honest" },
+      { label: "假裝在研究月餅上的花紋", next: "bbq_grandma_mooncake" }
+    ]
   },
   bbq_grandma_mooncake: {
-    text: "奶奶只是笑了笑:「偷吃的那口最甜,我以前也這樣。」她從口袋摸出一顆自己做的月餅,說要給你。",
-    choices: [{ label: "接過月餅,坐回桌邊", next: "bbq_together" }]
+    text: ctx => (ctx.has("honest")
+      ? "奶奶接過那半塊月餅,笑出聲來:「肯分人的,才是真的會吃。」"
+      : "奶奶沒有拆穿你,只是笑了笑:「偷吃的那口最甜,我以前也這樣。」")
+      + "她從口袋摸出一顆用油紙包著的自製月餅,塞進你手裡:「這顆留著,等等再吃。」",
+    choices: [
+      { label: "把月餅收進口袋,坐回桌邊", next: "bbq_together", set: "grandma_mooncake" },
+      { label: "忍不住當場拆開吃掉", next: "bbq_together" }
+    ]
   },
   bbq_together: {
-    text: "肉烤好了,全家人終於坐下。奶奶把收音機音量調大,一首老歌流洩出來,她跟著哼了兩句,眼神飄向遠方。",
+    text: ctx => (ctx.has("shared_meat") ? "弟妹吃得滿嘴油,吵著下一片還要你烤。\n\n" : "")
+      + (ctx.has("grandma_first") ? "奶奶嚼著你夾的肉,嘴上說太鹹,卻又自己多夾了一片。\n\n" : "")
+      + "肉烤好了,全家人終於坐下。奶奶把收音機音量調大,一首老歌流洩出來,她跟著哼了兩句,眼神飄向遠方。這時,門口好像有人在探頭探腦。",
     choices: [
       { label: "問奶奶以前的中秋是什麼樣子", next: "bbq_grandma_story" },
-      { label: "提議大家一起做燈籠", next: "bbq_make_lantern" }
+      { label: "提議大家一起做燈籠", next: "bbq_make_lantern" },
+      { label: "去門口看看是誰", next: "bbq_neighbor" }
     ]
   },
   bbq_grandma_story: {
-    text: "奶奶說起小時候家裡窮,一家七口分吃一顆月餅,那種擠在一起的感覺,比什麼山珍海味都珍貴。",
-    choices: [{ label: "靜靜聽完", next: "bbq_moon_rise" }]
+    text: ctx => "奶奶說起小時候家裡窮,一家七口分吃一顆月餅,那種擠在一起的感覺,比什麼山珍海味都珍貴。"
+      + (ctx.seenDoor ? "\n\n說到一半,奶奶壓低聲音:「我七歲那年,還在河堤邊看過一道發亮的門……你阿公說我是在作夢。」她看著你,好像在等你說什麼。" : ""),
+    choices: [
+      { label: "靜靜聽完", next: "bbq_moon_rise" },
+      { label: "握住奶奶的手", next: "bbq_moon_rise", set: "held_hand" },
+      { label: "小聲告訴奶奶:「我也看過那道門。」", next: "bbq_secret", when: ctx => ctx.seenDoor }
+    ]
+  },
+  bbq_secret: {
+    text: "奶奶愣了好一會兒,然後笑到眼淚都流出來。她握緊你的手,像個小女孩一樣問:「那她……還在搗藥嗎?」\n\n你點點頭。奶奶望著月亮,輕輕說:「那就好。」",
+    choices: [
+      { label: "陪奶奶一起看月亮", next: "bbq_moon_rise", set: "shared_secret" },
+      { label: "答應奶奶,明年帶她去河堤", next: "bbq_moon_rise", set: "shared_secret" }
+    ]
   },
   bbq_make_lantern: {
     text: "你和弟妹找出去年剩下的竹篾和玻璃紙,笨拙地糊出一盞歪歪的燈籠,大家笑成一團。",
-    choices: [{ label: "把燈籠掛起來", next: "bbq_moon_rise" }]
+    choices: [
+      { label: "在燈籠上寫下全家人的名字", next: "bbq_moon_rise", set: "lantern_names" },
+      { label: "在燈籠上畫一隻兔子", next: "bbq_moon_rise", set: "lantern_rabbit" }
+    ]
+  },
+  bbq_neighbor: {
+    text: "門口站著隔壁的小安,手裡提著一盞沒點亮的燈籠,小聲說:「我家的打火機沒油了……爸媽加班還沒回來。」",
+    choices: [
+      { label: "幫他點燈,邀他一起烤肉", next: "bbq_neighbor_join", set: "invited_neighbor" },
+      { label: "幫他點好燈,送他回家門口", next: "bbq_neighbor_walk" }
+    ]
+  },
+  bbq_neighbor_join: {
+    text: "小安一開始很拘謹,吃到第三串香腸就跟弟弟吵起誰的燈籠比較亮。媽媽多拿了一副碗筷,好像那個位子本來就是他的。",
+    choices: [
+      { label: "教小安怎麼烤棉花糖", next: "bbq_blackout" },
+      { label: "借手機讓小安打給爸媽報平安", next: "bbq_blackout", set: "called_parents" }
+    ]
+  },
+  bbq_neighbor_walk: {
+    text: "你陪小安走到他家門口,他把點亮的燈籠掛上門把,整條巷子好像亮了一點。\n\n回頭時,你看見河堤的方向,有一道奇怪的白光一閃而過。",
+    choices: [
+      { label: "回家繼續烤肉", next: "bbq_moon_rise" },
+      { label: "往河堤的白光走過去", next: "walk", set: "from_bbq" }
+    ]
+  },
+  bbq_blackout: {
+    text: ctx => (ctx.has("called_parents") ? "小安掛掉電話,說爸媽再一個小時就回來,整個人放鬆下來。\n\n" : "")
+      + "正熱鬧時,整條巷子「啪」一聲停電。四周一下子全黑了,只剩炭火和月光。弟弟嚇得抓住你的袖子。",
+    choices: [
+      { label: "點起蠟燭,提議輪流講一個中秋故事", next: "bbq_candle" },
+      { label: "要大家關掉手機燈,只看月亮", next: "bbq_moon_rise", set: "moon_only" }
+    ]
+  },
+  bbq_candle: {
+    text: "燭光下,爸爸講了年輕時騎機車載媽媽去看月亮、半路沒油的糗事;小安講他在學校做的柚子帽。輪到你時,大家都看著你。",
+    choices: [
+      { label: "講一個關於月兔的故事", next: "END:candlelight" },
+      { label: "說出今晚心裡的感謝", next: "END:gratitude" }
+    ]
   },
   bbq_moon_rise: {
-    text: "月亮升到院子正上方,又圓又亮。飯桌上的菜涼了一半,但沒有人在意。",
+    text: ctx => "月亮升到院子正上方,又圓又亮。飯桌上的菜涼了一半,但沒有人在意。"
+      + (ctx.has("lantern_names") ? "寫滿全家人名字的燈籠在屋簷下輕輕晃著。" : "")
+      + (ctx.has("lantern_rabbit") ? "燈籠上那隻歪歪的兔子被月光一照,影子投在牆上,像在跳。" : "")
+      + (ctx.has("moon_only") ? "少了燈光,月亮反而更亮了,連奶奶都說好多年沒看過這麼清楚的月亮。" : "")
+      + (ctx.has("held_hand") ? "奶奶的手一直沒放開。" : ""),
     choices: [
       { label: "提議上頂樓看月亮", next: "bbq_rooftop" },
       { label: "留在院子裡慢慢吃", next: "bbq_yard" }
     ]
   },
   bbq_rooftop: {
-    text: "頂樓什麼遮蔽都沒有,月亮幾乎近得像伸手就能摸到。晚風有點涼,你和弟妹靠在一起,誰也沒說話。",
-    choices: [{ label: "在這裡多待一會兒", next: "bbq_final" }]
+    text: ctx => (ctx.has("came_home") ? "你拉著大家爬上頂樓。" : "")
+      + "頂樓什麼遮蔽都沒有,月亮近得像伸手就能摸到。晚風有點涼,你和弟妹靠在一起。"
+      + (ctx.seenDoor ? "\n\n遠遠的河堤那頭,有一點白光亮了一下又熄滅——你知道那是什麼。" : ""),
+    choices: [
+      { label: "拿出奶奶給的月餅,掰開分給弟妹", next: "bbq_final", set: "split_mooncake", when: ctx => ctx.has("grandma_mooncake") },
+      { label: "和弟妹約定,明年還要一起上來", next: "END:rooftop_promise" },
+      { label: "什麼都不說,多待一會兒", next: "bbq_final" }
+    ]
   },
   bbq_yard: {
-    text: "你留在院子裡,一口一口把剩下的月餅吃完,聽長輩們閒聊些家常瑣事。",
-    choices: [{ label: "夜深了", next: "bbq_final" }]
+    text: "你留在院子裡,一口一口吃著涼掉的肉,聽長輩們閒聊。媽媽忽然轉頭問你:「最近過得好嗎?」",
+    choices: [
+      { label: "老實說最近有點累", next: "bbq_final", set: "opened_up" },
+      { label: "笑著說一切都好", next: "bbq_final" }
+    ]
   },
   bbq_final: {
-    text: "夜深了,今晚的最後一刻,你想怎麼度過?",
+    text: ctx => (ctx.has("split_mooncake") ? "嘴裡還留著奶奶月餅的甜味。" : "")
+      + "夜深了,今晚的最後一刻,你想怎麼度過?",
     choices: [
       { label: "大聲說出今晚的感謝", next: "END:gratitude" },
-      { label: "只是安靜享受這一刻", next: "END:reunion_quiet" }
+      { label: "只是安靜享受這一刻", next: "END:reunion_quiet" },
+      { label: "陪小安坐在門口,等他爸媽回來", next: "END:extra_bowl", when: ctx => ctx.has("invited_neighbor") }
     ]
   },
 
   /* ---------- 賞月線 ---------- */
   walk: {
-    text: "河堤邊很安靜,月亮的倒影在水面上輕輕晃著。走著走著,草叢裡竄出一隻通體雪白的兔子,靜靜盯著你看,一點也不怕人。",
+    text: ctx => (ctx.has("from_bbq")
+      ? "你循著白光走到河堤,光已經不見了,只剩月亮的倒影在水面上輕輕晃著。"
+      : "河堤邊很安靜,月亮的倒影在水面上輕輕晃著。")
+      + "走著走著,草叢裡竄出一隻通體雪白的兔子,靜靜盯著你看,一點也不怕人。",
     choices: [
       { label: "蹲下來,跟著兔子走進草叢", next: "rabbit" },
       { label: "不理會兔子,找個地方賞月", next: "moongaze" }
     ]
   },
   rabbit: {
-    text: "兔子領著你穿過芒草叢,眼前出現一道發亮的月光門,門後傳來搗藥的節奏聲和淡淡桂花香。",
+    text: ctx => (ctx.seen("legend") ? "兔子回頭看了你一眼,耳朵動了動,好像認得你。\n\n" : "")
+      + "兔子領著你穿過芒草叢,眼前出現一道發亮的月光門,門後傳來搗藥的節奏聲和淡淡桂花香。",
     choices: [
       { label: "推開月光門走進去", next: "chang_e" },
       { label: "笑著搖搖頭,轉身離開", next: "END:homeward" }
     ]
   },
   chang_e: {
-    text: "門後是灑滿月光的庭院,一位女子正在搗藥,她抬頭看你,彷彿早知道你會來:「每年這一晚,月門都會開一次。」",
-    choices: [{ label: "接過她遞來的桂花酒", next: "chang_e_talk" }]
+    text: ctx => "門後是灑滿月光的庭院,一位女子正在搗藥,她抬頭看你,彷彿早知道你會來:「每年這一晚,月門都會開一次。」"
+      + (ctx.has("from_bbq") ? "\n\n她聞了聞空氣,笑了:「你身上有炭火的味道,是從團圓的桌邊走過來的吧。」" : "")
+      + (ctx.seen("legend") ? "\n\n「又是你。上次的故事,還沒說完呢。」" : ""),
+    choices: [
+      { label: "接過她遞來的桂花酒", next: "chang_e_talk" },
+      { label: "問她搗的是什麼藥", next: "chang_e_talk", set: "asked_medicine" }
+    ]
   },
   chang_e_talk: {
-    text: "「大部分人站在門口猶豫,最後還是轉身回去了——你想留下來,聽我說說這幾千年的月亮上,都發生過什麼事嗎?」",
+    text: ctx => (ctx.has("asked_medicine") ? "「是給想家的人的藥,」她輕聲說,「只是我自己,從來喝不到。」\n\n" : "")
+      + "「大部分人站在門口猶豫,最後還是轉身回去了——你想留下來,聽我說說這幾千年的月亮上,都發生過什麼事嗎?」",
     choices: [
       { label: "留下來聽她說故事", next: "END:legend" },
       { label: "想了想,還是決定回家", next: "END:homeward2" }
@@ -261,42 +351,116 @@ const story = {
   },
   wish: { isWishInput: true },
   peace: {
-    text: "你沒有許願,只是看著月亮一點一點爬向天頂,雲絲偶爾飄過。",
-    choices: [{ label: "口袋裡的手機震動了一下", next: "peace_deepen" }]
+    text: "你沒有許願,只是看著月亮一點一點爬向天頂,雲絲偶爾飄過。\n\n口袋裡的手機震了一下——是媽媽傳來的照片:院子裡的烤肉架、奶奶擺好的供桌,還有一句「留了你的位子」。",
+    choices: [
+      { label: "回「馬上回去」,起身往家的方向跑", next: "walk_home", set: "came_home" },
+      { label: "回「在賞月,等等回去」,再多待一會兒", next: "END:peace" }
+    ]
   },
-  peace_deepen: {
-    text: "是家人問你在哪,你回了一句「在賞月,等等回去」,然後把手機收了起來。",
-    choices: [{ label: "多留一會兒", next: "END:peace" }]
+  walk_home: {
+    text: "你一路小跑回家,推開院子鐵門時,炭火還沒熄。弟弟大喊:「你終於來了!」奶奶把一顆用油紙包著的月餅塞進你手裡:「這顆留給你的。」",
+    choices: [
+      { label: "坐下來,接過烤肉夾", next: "END:late_reunion" },
+      { label: "拉著大家一起上頂樓看月亮", next: "bbq_rooftop", set: "grandma_mooncake" }
+    ]
+  },
+
+  /* ---------- 隱藏結局 ---------- */
+  hidden_1: {
+    text: "你又一次站在自家門口,手裡拎著月餅。但這一次,巷子裡的燈籠一盞接一盞,往河堤的方向亮過去,像在替你帶路。",
+    choices: [
+      { label: "跟著燈籠走", next: "hidden_2" },
+      { label: "先回屋裡叫上全家人", next: "hidden_2" }
+    ]
+  },
+  hidden_2: {
+    text: "河堤上擺著一張長長的桌子。爸媽、弟妹、奶奶都在,小安提著他的燈籠跑來跑去,白兔蹲在桌角啃柚子皮。\n\n月光門開著,搗藥的女子走出來,在奶奶身邊坐下——兩個人像老朋友一樣,對彼此點了點頭。",
+    choices: [
+      { label: "坐到奶奶和她中間", next: "hidden_3" },
+      { label: "先幫大家把月餅切好", next: "hidden_3" }
+    ]
+  },
+  hidden_3: {
+    text: "奶奶說:「我七歲那年看到的,就是她。」\n\n女子笑了:「我記得妳。妳當年也沒有進門,轉身回家了。」\n\n大家都笑了。月亮低低地掛在桌子正上方,好像也想湊過來聽。",
+    choices: [
+      { label: "舉起杯子,敬這一整晚", next: "END:hidden" },
+      { label: "把今晚所有的故事,一個一個說給大家聽", next: "END:hidden" }
+    ]
   }
 };
 
 const endings = {
-  gratitude:    { title: "結局:說出口的愛", rating:"稱號｜把溫暖說出口的人", desc: "你把感謝說出了口,家人愣了一下,隨即笑得比月亮還亮。" },
-  reunion_quiet:{ title: "結局:安靜的圓滿", rating:"稱號｜珍惜此刻的人", desc: "你什麼都沒說,只是靜靜坐著,而這份安靜本身,就是最好的團圓。" },
-  legend:       { title: "結局:月門那端", rating:"稱號｜月宮訪客", desc: "你是少數願意留下的人,這個中秋,你的故事和月亮一樣,將被靜靜記得。" },
-  homeward2:    { title: "結局:眷戀人間", rating:"稱號｜記得回家的人", desc: "傳說再美,你還是選擇回到人間——那裡有等你回去的燈火。" },
-  homeward:     { title: "結局:歸途", rating:"稱號｜循著燈火回家的人", desc: "你沒有走進月光門,遠遠看見自家陽台的燈還亮著,那盞燈比任何傳說都珍貴。" },
-  hope:         { title: "結局:許願", rating:"稱號｜把心願交給月亮的人", desc: "你把心裡的話說給了月亮聽,帶著一點微小卻真實的希望走回人間。" },
-  peace:        { title: "結局:靜好", rating:"稱號｜與月光同行的人", desc: "不求什麼,只是好好活在這一刻——這也是屬於你自己的圓滿。" },
-  hidden:       { title: "隱藏結局:月下團圓", rating:"稱號｜集齊月光的人", desc:"你走過每一段不同的中秋夜，月亮記住了你的所有選擇。今晚，所有故事在同一輪月光下相遇。" }
+  gratitude:       { title: "結局:說出口的愛", rating:"稱號｜把溫暖說出口的人",
+    desc: ctx => "你把感謝說出了口,家人愣了一下,隨即笑得比月亮還亮。"
+      + (ctx.has("opened_up") ? "媽媽握住你的手:「累了就回家,家裡永遠有你的位子。」" : "")
+      + (ctx.has("grandma_first") || ctx.has("split_mooncake") ? "奶奶偷偷擦了擦眼角。" : "") },
+  reunion_quiet:   { title: "結局:安靜的圓滿", rating:"稱號｜珍惜此刻的人",
+    desc: ctx => "你什麼都沒說,只是靜靜坐著,而這份安靜本身,就是最好的團圓。"
+      + (ctx.has("split_mooncake") ? "奶奶那顆月餅,你後來覺得比任何一顆都甜。" : "")
+      + (ctx.has("shared_secret") ? "你和奶奶之間,從此多了一個只有月亮知道的祕密。" : "") },
+  candlelight:     { title: "結局:燭光故事會", rating:"稱號｜在黑暗裡點燈的人",
+    desc: "你講完月兔的故事,小安問那隻兔子後來有沒有回家。電來了,但沒有人急著開燈——大家都還想再聽一個。" },
+  rooftop_promise: { title: "結局:頂樓的約定", rating:"稱號｜許下明年的人",
+    desc: ctx => "你們勾了勾手指,約好明年、後年、以後的每一年,都要一起上來看月亮。"
+      + (ctx.has("came_home") ? "差點錯過今年的你,這次把約定說得特別大聲。" : "") },
+  extra_bowl:      { title: "結局:多一副碗筷", rating:"稱號｜替別人留燈的人",
+    desc: "小安靠在你肩上睡著了。巷口終於出現他爸媽的身影,他們一直鞠躬道謝。媽媽笑著說:「明年直接過來一起吃。」" },
+  legend:          { title: "結局:月門那端", rating:"稱號｜月宮訪客",
+    desc: ctx => "你是少數願意留下的人,這個中秋,你的故事和月亮一樣,將被靜靜記得。"
+      + (ctx.has("asked_medicine") ? "臨走前,她把一小包藥粉塞給你:「帶回去,給想家的人。」" : "") },
+  homeward2:       { title: "結局:眷戀人間", rating:"稱號｜記得回家的人",
+    desc: ctx => "傳說再美,你還是選擇回到人間——那裡有等你回去的燈火。"
+      + (ctx.has("from_bbq") ? "你走回院子時,烤肉架上還留著一串給你的香腸。" : "") },
+  homeward:        { title: "結局:歸途", rating:"稱號｜循著燈火回家的人",
+    desc: "你沒有走進月光門,遠遠看見自家陽台的燈還亮著,那盞燈比任何傳說都珍貴。" },
+  hope:            { title: "結局:許願", rating:"稱號｜把心願交給月亮的人",
+    desc: ctx => `你把「${ctx.wish}」說給了月亮聽。`
+      + (ctx.has("waited")
+        ? "你等了很久,雲散開的那一刻,月亮好像對你眨了一下眼。你決定相信它聽見了。"
+        : "你帶著一點微小卻真實的希望,走回了人間。") },
+  peace:           { title: "結局:靜好", rating:"稱號｜與月光同行的人",
+    desc: "不求什麼,只是好好活在這一刻——這也是屬於你自己的圓滿。" },
+  late_reunion:    { title: "結局:遲來的團圓", rating:"稱號｜終究回到燈火裡的人",
+    desc: "你錯過了開頭,卻趕上了最好的部分。月光底下,晚到的人也有位子。" },
+  hidden:          { title: "隱藏結局:月下團圓", rating:"稱號｜集齊月光的人",
+    desc: "你走過了每一段不同的中秋夜,它們最後都通向同一張桌子。今晚,所有故事在同一輪月光下相遇。" }
 };
 
 /* ---------- 引擎 ---------- */
 const card = document.getElementById('card');
-let stepCount = 0;
 const UNLOCK_KEY = 'moon-festival-unlocked-endings';
 const RECORD_KEY = 'moon-festival-records-v2';
 const MISSIONS = [
   { text: '走進月光門，看看傳說的另一端', test: run => run.visited.includes('chang_e') },
-  { text: '選擇一個溫柔的夜晚結局', test: run => ['peace','reunion_quiet','homeward','homeward2'].includes(run.ending) },
-  { text: '在故事中做出至少 5 次選擇', test: run => run.steps >= 5 },
-  { text: '找到一個平常不會走的分支', test: run => run.visited.includes('rabbit') || run.visited.includes('bbq_make_lantern') }
+  { text: '選擇一個溫柔的夜晚結局', test: run => ['peace','reunion_quiet','homeward','homeward2','late_reunion'].includes(run.ending) },
+  { text: '在故事中做出至少 6 次選擇', test: run => run.steps >= 6 },
+  { text: '找到一個平常不會走的分支', test: run => ['rabbit','bbq_make_lantern','bbq_neighbor'].some(k => run.visited.includes(k)) },
+  { text: '讓烤肉和賞月兩條路線交會一次', test: run => run.visited.includes('walk') && run.visited.includes('bbq_rooftop') || run.flags.has('from_bbq') },
+  { text: '讓奶奶給的月餅派上用場', test: run => run.flags.has('split_mooncake') },
+  { text: '在停電的夜裡找到光', test: run => run.visited.includes('bbq_blackout') }
 ];
-let mission = MISSIONS[Math.floor(Math.random() * MISSIONS.length)];
-let visited = [];
+const DOOR_ENDINGS = ['legend', 'homeward', 'homeward2'];
+let mission, stepCount, visited, storyLog, flags, wishText, currentRunSaved;
 let playerName = '';
-let storyLog = [];
-let currentRunSaved = false;
+
+function resetRun(){
+  stepCount = 0; visited = []; storyLog = []; flags = new Set(); wishText = ''; currentRunSaved = false;
+  mission = MISSIONS[Math.floor(Math.random() * MISSIONS.length)];
+}
+resetRun();
+
+// 故事內容讀取狀態用:本輪的選擇 + 過去解鎖過的結局
+function ctx(){
+  const seen = getUnlocked();
+  return {
+    has: flag => flags.has(flag),
+    seen: id => seen.includes(id),
+    seenAny: seen.length > 0,
+    seenDoor: DOOR_ENDINGS.some(id => seen.includes(id)),
+    wish: wishText
+  };
+}
+function resolve(value){ return typeof value === 'function' ? value(ctx()) : value; }
 
 function getUnlocked(){
   try { return JSON.parse(localStorage.getItem(UNLOCK_KEY) || '[]'); }
@@ -361,19 +525,19 @@ async function fetchStoryRecords(){
 function renderPlayerEntry(){
   card.innerHTML=`<h1>月圓之夜</h1><p class="subtitle">先留下你的名稱，再開始今晚的故事。</p><label for="playerNameInput">玩家名稱</label><input class="wish-input" id="playerNameInput" maxlength="24" autocomplete="nickname" placeholder="輸入你想使用的名稱"><div class="choices"><button class="choice" id="enterStoryBtn">進入故事</button></div><button class="stats-link" id="entryStoriesBtn" style="margin-top:18px;">查看玩家結局與故事紀錄</button>`;
   const input=document.getElementById('playerNameInput');
-  document.getElementById('enterStoryBtn').addEventListener('click',()=>{playerName=input.value.trim().slice(0,24)||'月光旅人';stepCount=0;visited=[];storyLog=[];currentRunSaved=false;window.__moonStorySaved=false;mission=MISSIONS[Math.floor(Math.random()*MISSIONS.length)];render('start');});
+  document.getElementById('enterStoryBtn').addEventListener('click',()=>{playerName=input.value.trim().slice(0,24)||'月光旅人';resetRun();render('start');});
   input.addEventListener('keydown',event=>{if(event.key==='Enter')document.getElementById('enterStoryBtn').click();});
   document.getElementById('entryStoriesBtn').addEventListener('click',()=>renderStats(null));
 }
 
 function renderEnding(id){
   const ending = endings[id];
-  if(id==='hidden'&&!getUnlocked().includes('hidden'))unlockEnding('hidden');
+  const desc = resolve(ending.desc);
   const firstRender=!currentRunSaved;
   if(firstRender){unlockEnding(id);incrementEndingRemote(id);saveEnding(id);currentRunSaved=true;}
   const records=getRecords();
-  if(firstRender)saveStoryRecord({player:playerName||'月光旅人',ending:id,endingTitle:ending.title,description:ending.desc,path:storyLog.slice(),date:new Date().toISOString()});
-  const missionDone=mission.test({visited,ending:id,steps:stepCount});
+  if(firstRender)saveStoryRecord({player:playerName||'月光旅人',ending:id,endingTitle:ending.title,description:desc,path:storyLog.slice(),date:new Date().toISOString()});
+  const missionDone=mission.test({visited,flags,ending:id,steps:stepCount});
   const allEndings=[...new Set([...getUnlocked(),id])];
   const regularEndingCount=Object.keys(endings).length-1;
   const secretUnlocked=Object.keys(endings).filter(key=>key!=='hidden').every(key=>allEndings.includes(key));
@@ -381,7 +545,7 @@ function renderEnding(id){
     <div class="ending-scene" aria-hidden="true"><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span></div>
     <span class="ending-tag">${ending.title}</span>
     <strong class="ending-title">${ending.rating}</strong>
-    <p style="color:var(--ink-dim);font-size:1.02rem;margin-bottom:6px;">${ending.desc}</p>
+    <p style="color:var(--ink-dim);font-size:1.02rem;margin-bottom:6px;">${desc}</p>
     <div class="record-line">玩家：${escapeHtml(playerName||'月光旅人')}<br>本輪故事：${storyLog.map(escapeHtml).join(' → ')||'月色中的一段旅程'} → ${escapeHtml(ending.title.replace('結局:','').replace('隱藏結局:',''))}</div>
     <div class="score-line">${missionDone ? '任務完成！' : '再玩一次挑戰任務'}<br>${missionDone ? '🌟 ' + mission.text : '🎯 ' + mission.text}</div>
     ${id==='hidden' ? '<p class="wish-result">你走過了每一段中秋夜，整片夜空都為你亮起。</p>' : ''}
@@ -391,11 +555,9 @@ function renderEnding(id){
     <button class="restart" id="restartBtn">重新開始這個中秋夜</button>
     <button class="stats-link" id="viewStatsBtn" style="margin-top:14px;">看看其他玩家的結局與故事</button>
   `;
-  document.getElementById('restartBtn').addEventListener('click', () => {
-    stepCount = 0; visited=[]; storyLog=[];currentRunSaved=false;mission=MISSIONS[Math.floor(Math.random()*MISSIONS.length)]; render('start');
-  });
+  document.getElementById('restartBtn').addEventListener('click', () => { resetRun(); render('start'); });
   document.getElementById('lanternBtn').addEventListener('click',lightLantern);
-  const secretBtn=document.getElementById('secretBtn');if(secretBtn)secretBtn.addEventListener('click',()=>renderEnding('hidden'));
+  const secretBtn=document.getElementById('secretBtn');if(secretBtn)secretBtn.addEventListener('click',()=>{ resetRun(); render('hidden_1'); });
   document.getElementById('shareBtn').addEventListener('click',async()=>{
     const text=`我在《月圓之夜》走到了「${ending.title.replace('隱藏結局:','').replace('結局:','')}」。`;
     try{await navigator.clipboard.writeText(text);document.getElementById('shareBtn').textContent='已複製到剪貼簿';}catch(e){document.getElementById('shareBtn').textContent=text;}
@@ -456,37 +618,45 @@ function renderWish(){
     <div class="choices"><button class="choice" id="wishSubmit">許下這個願望</button></div>
   `;
   document.getElementById('wishSubmit').addEventListener('click', () => {
-    const val = escapeHtml(document.getElementById('wishInput').value.trim() || "一個沒有說出口、只有自己知道的願望");
-    storyLog.push('許下願望：'+val);
+    wishText = escapeHtml(document.getElementById('wishInput').value.trim() || "一個沒有說出口、只有自己知道的願望");
+    storyLog.push('許下願望：'+wishText);
     stepCount += 1;
     card.innerHTML = `
       <div class="step-label">第 ${stepCount} 段 · 中秋夜</div>
-      <div class="story-text">你在心裡把「${val}」一字一句慢慢說了一遍。一陣風忽然吹過堤岸的芒草,沙沙作響,你分不清是巧合,還是月亮真的聽見了。</div>
-      <div class="choices"><button class="choice" id="wishContinue">起身,往回家的路走去</button></div>
+      <div class="story-text">你在心裡把「${wishText}」一字一句慢慢說了一遍。一陣風忽然吹過堤岸的芒草,沙沙作響,你分不清是巧合,還是月亮真的聽見了。</div>
+      <div class="choices">
+        <button class="choice" id="wishContinue">起身,往回家的路走去</button>
+        <button class="choice" id="wishWait">再坐一會兒,等月亮回答</button>
+      </div>
     `;
-    document.getElementById('wishContinue').addEventListener('click', () => renderEnding('hope'));
+    document.getElementById('wishContinue').addEventListener('click', () => { storyLog.push('起身回家'); renderEnding('hope'); });
+    document.getElementById('wishWait').addEventListener('click', () => { flags.add('waited'); storyLog.push('等月亮回答'); renderEnding('hope'); });
   });
 }
 
 function render(nodeKey){
-  if (nodeKey.startsWith('END:')) { const id=nodeKey.slice(4); if(id==='hidden' || getUnlocked().length>=Object.keys(endings).length){renderEnding('hidden');}else{renderEnding(id);} return; }
+  if (nodeKey.startsWith('END:')) { renderEnding(nodeKey.slice(4)); return; }
   visited.push(nodeKey);
   const node = story[nodeKey];
   if (node.isWishInput) { renderWish(); return; }
 
   stepCount += 1;
+  const c = ctx();
+  const choices = node.choices.filter(choice => !choice.when || choice.when(c));
   card.innerHTML = `
     <div class="step-label">第 ${stepCount} 段 · 中秋夜</div>
     ${nodeKey === 'start' ? renderStartHeader() : ''}
-    <div class="story-text">${node.text}</div>
+    <div class="story-text">${resolve(node.text)}</div>
     <div class="choices">
-      ${node.choices.map(c => `<button class="choice" data-next="${c.next}">${c.label}</button>`).join('')}
+      ${choices.map((choice, i) => `<button class="choice" data-index="${i}">${choice.label}</button>`).join('')}
     </div>
   `;
   card.querySelectorAll('.choice').forEach(btn => {
     btn.addEventListener('click', () => {
-      storyLog.push(btn.textContent.trim());
-      render(btn.dataset.next);
+      const choice = choices[btn.dataset.index];
+      if (choice.set) flags.add(choice.set);
+      storyLog.push(choice.label);
+      render(choice.next);
     });
   });
 
